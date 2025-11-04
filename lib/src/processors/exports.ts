@@ -34,6 +34,7 @@ export namespace ProcessorWorklets {
         LimiterProcessor = (await minify(_LimiterProcessor, minifyOptions)).code ?? "";
         SaturationProcessor = (await minify(_SaturationProcessor, minifyOptions)).code ?? "";
         SoftClipProcessor = (await minify(_SoftClipProcessor, minifyOptions)).code ?? "";
+        SoftClipProcessor = (await minify(_SoftClipProcessor, minifyOptions)).code ?? "";
         StereoPannerProcessor = (await minify(_StereoPannerProcessor, minifyOptions)).code ?? "";
     }
 }
