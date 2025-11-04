@@ -270,13 +270,10 @@ async function __wbg_init(module_or_path) {
     return __wbg_finalize_init(instance, module);
 }
 
-export { initSync };
-export default __wbg_init;
-
 
 class SoftClipProcessor extends AudioWorkletProcessor {
 
-    static get parametersDescriptors() {
+    static get parameterDescriptors() {
         return [
             {
                 name: "drive",
@@ -291,25 +288,58 @@ class SoftClipProcessor extends AudioWorkletProcessor {
     constructor(options) {
         super();
 
-        /**@type {boolean} */
         this.isReady = false;
-
-        /**@type {null | SoftClip} */
         this.clip = null;
-
-        /**@type {null | WebAssembly.Module} */
         this.module = null;
 
         const self = this;
 
         __wbg_init(options.processorOptions.module).then(function() {
-
             self.isReady = true;
             self.clip = new SoftClip(options.parameterData.drive ?? 1);
             self.module = options.processorOptions.module;
 
             self.clip.process(new Float32Array(128));
         });
+    }
+
+    process(inputs, outputs, parameters) {
+        const input = inputs[0];
+        const output = outputs[0];
+
+        if (!input || input.length === 0) {
+            for (let ch = 0; ch < output.length; ch++) {
+                output[ch].fill(0);
+            }
+            return true;
+        }
+
+        if (!this.isReady || !this.clip) {
+            for (let ch = 0; ch < input.length; ch++) {
+                if (!input[ch] || !output[ch]) continue;
+                output[ch].set(input[ch]);
+            }
+            return true;
+        }
+
+
+        const driveParam = parameters.drive;
+
+        if (driveParam && driveParam.length === 1) {
+            this.clip.set_drive(driveParam[0]);
+        }
+
+        for (let ch = 0; ch < input.length; ch++) {
+            const inChan = input[ch];
+            const outChan = output[ch];
+
+            if (!inChan || !outChan) continue;
+
+            outChan.set(inChan);
+            this.clip.process(outChan);
+        }
+
+        return true;
     }
 }
 

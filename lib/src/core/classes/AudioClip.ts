@@ -77,14 +77,13 @@ export class AudioClip {
 
     private rebuildNodeChain() {
 
-        if (!this.parentialAudioContext || !this.gainNode || !this.stereoPannerNode || !this.parentialChannel || !this.parentialChannel.inputGainNode) {
+        if (!this.parentialAudioContext || !this.gainNode || !this.stereoPannerNode || !this.parentialChannel || !this.parentialChannel.audioClipsInputGainNode) {
 
             Debug.Error("rebuildNodeChain: missing context or core nodes (gain/panner).");
             return false;
         }
 
-        const ctx = this.parentialAudioContext;
-        const dest = this.parentialChannel.inputGainNode;
+        const destination = this.parentialChannel.audioClipsInputGainNode;
 
         this.safeDisconnect(this.gainNode);
         this.safeDisconnect(this.stereoPannerNode);
@@ -102,12 +101,10 @@ export class AudioClip {
         this.gainNode.connect(this.stereoPannerNode);
 
         if (this.postAnalyserEnabled && this.postAnalyser) {
-
             this.stereoPannerNode.connect(this.postAnalyser);
-            this.postAnalyser.connect(dest);
+            this.postAnalyser.connect(destination);
         } else {
-
-            this.stereoPannerNode.connect(dest);
+            this.stereoPannerNode.connect(destination);
         }
 
         this.connectSourcesTo(entry);
@@ -118,7 +115,7 @@ export class AudioClip {
 
     public InitializeAudioClipOnAttaching(channel: Channel): AudioClip | null {
 
-        if(!channel.parentialContext || !channel.inputGainNode) {
+        if(!channel.parentialContext || !channel.audioClipsInputGainNode) {
 
             Debug.Error("Could not initialize audio clip on channel attachment, because channel it's master channel has not been defined.", [
                 `Call .AttachChannel([channel<"${channel.id}"> Channel]) on the master channel.`
