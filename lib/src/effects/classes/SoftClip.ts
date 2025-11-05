@@ -30,8 +30,6 @@ export class SoftClip extends Effector {
             }
         });
 
-        // this.gainNode = new GainNode(parentialContext);
-        // this.audioWorkletNode.connect(this.gainNode);
 
         this.gainNode = this.audioWorkletNode as unknown as GainNode;
 
