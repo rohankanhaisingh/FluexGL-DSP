@@ -28,6 +28,4 @@ export abstract class Effector {
     }
 
     public abstract InitializeOnAttachment(parentialContext: AudioContext): Promise<void>;
-    public abstract Initialize(): Promise<void>;
-    public abstract Process(buffer: Float32Array): void;
 }

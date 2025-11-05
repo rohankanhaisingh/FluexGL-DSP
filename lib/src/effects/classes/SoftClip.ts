@@ -8,10 +8,6 @@ export class SoftClip extends Effector {
         super();
     }
 
-    public async Initialize(): Promise<void> {
-
-    }
-
     public async InitializeOnAttachment(parentialContext: AudioContext): Promise<void> {
 
         if(!compiledWebAssemblyModule) return Debug.Error("Could not initialize effector because the nessecary WASM file has not been specified.", [
@@ -30,19 +26,18 @@ export class SoftClip extends Effector {
             }
         });
 
-
         this.gainNode = this.audioWorkletNode as unknown as GainNode;
-
         this.parentialContext = parentialContext;
     }
 
-    public Process(buffer: Float32Array): void {
+    public SetDrive(drive: number): SoftClip {
+        
+        if(this.audioWorkletNode) this.audioWorkletNode.port.postMessage({
+            type: "set-drive",
+            value: drive
+        });
 
-        // Simple soft clipping algorithm
-
-    }
-
-    public SetDrive(drive: number): void {
         this.drive = drive;
+        return this;
     }
 }
