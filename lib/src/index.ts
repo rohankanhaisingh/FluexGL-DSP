@@ -86,5 +86,6 @@ export {
     AudioClipOnProgressEvent,
     AudioClipAnalyserProperty,
     AudioClipAnalyserType,
-    DspPipelineInitializationOptions
+    DspPipelineInitializationOptions,
+    DspPipelineInitializationState
 } from "./typings";

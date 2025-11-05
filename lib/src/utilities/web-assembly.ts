@@ -1,6 +1,6 @@
-import { Master } from "./core/exports";
-import { Debug } from "./utilities/debugger";
-import { ConstructProcessorWorklet } from "./utilities/helpers";
+import { Master } from "../core/exports";
+
+import { Debug } from "./debugger";
 
 export let hasInitializedWasm: boolean = false;
 export let compiledWebAssemblyModule: WebAssembly.Module | null = null;
@@ -17,12 +17,13 @@ export async function LoadWebAssemblyModule(path: string): Promise<WebAssembly.M
     })
 }
 
-export async function LoadWorkletOnMasterChannel(master: Master) {
+export async function LoadWorkletOnMasterChannel(master: Master, workletBlobUrl: string) {
     Debug.Log("Loading worklet modules on master channel...", [ `Channel ID: ${master.id}` ]);
 
     const context: AudioContext = master.context,
         start: number = Date.now();
 
+    await context.audioWorklet.addModule(workletBlobUrl);
 
     const end: number = Date.now(),
         difference: number = end - start;

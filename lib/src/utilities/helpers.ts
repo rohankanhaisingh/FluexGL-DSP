@@ -6,10 +6,10 @@ import { AudioDevice } from "../core/classes/AudioDevice";
 import { Debug } from "./debugger";
 import { SUPPORTED_FILE_TYPES } from "./constants";
 
-import { LoadWorkletOnMasterChannel, LoadWebAssemblyModule } from "../web-assembly";
+import { LoadWorkletOnMasterChannel, LoadWebAssemblyModule } from "./web-assembly";
 import { ErrorCodes, WarningCodes } from "../console-codes";
 
-import { LoadAudioSourceOptions, AudioSourceData, DspPipelineInitializationOptions } from "../typings";
+import { LoadAudioSourceOptions, AudioSourceData, DspPipelineInitializationOptions, DspPipelineInitializationState } from "../typings";
 
 /**
  * Initializes the DSP pipeline by requesting audio permissions and initializing the WASM module.
@@ -18,7 +18,7 @@ import { LoadAudioSourceOptions, AudioSourceData, DspPipelineInitializationOptio
  * FluexGL DSP cannot be used without calling this function first.
  * @returns 
  */
-export async function InitializeDspPipeline(options: DspPipelineInitializationOptions): Promise<boolean> {
+export async function InitializeDspPipeline(options: DspPipelineInitializationOptions): Promise<DspPipelineInitializationState | null> {
     Debug.Log("Attempting to initialize DSP pipeline...");
 
     const start: number = Date.now();
@@ -44,12 +44,20 @@ export async function InitializeDspPipeline(options: DspPipelineInitializationOp
 
     await LoadWebAssemblyModule(options.pathToWasm);
 
+    const workletFileRequest = await fetch(options.pathToWorklet);
+    const textContent: string = await workletFileRequest.text();
+
+    const blobUrl: string = ConstructProcessorWorklet(textContent);
+
     const end: number = Date.now(),
         difference: number = end - start;
 
     Debug.Success(`Succesfully initialized DSP pipeline within ${difference}ms.`);
 
-    return initialized;
+    return {
+        success: true,
+        workletBlobUrl: blobUrl
+    };
 }
 
 /**
@@ -88,7 +96,7 @@ export async function ResolveAudioInputDevices(): Promise<AudioDevice[]> {
  * Resolves the default audio output device.
  * @returns 
  */
-export async function ResolveDefaultAudioOutputDevice(): Promise<AudioDevice | null> {
+export async function ResolveDefaultAudioOutputDevice(init: DspPipelineInitializationState): Promise<AudioDevice | null> {
     Debug.Log("Attempting to resolve default audio output device...");
     
     const audioDeviceInfos: MediaDeviceInfo[] = [];
@@ -104,7 +112,7 @@ export async function ResolveDefaultAudioOutputDevice(): Promise<AudioDevice | n
 
     if(!defaultAudioDevice) return null;
 
-    await LoadWorkletOnMasterChannel(defaultAudioDevice.masterChannel);
+    await LoadWorkletOnMasterChannel(defaultAudioDevice.masterChannel, init.workletBlobUrl);
 
     return defaultAudioDevice;
 }

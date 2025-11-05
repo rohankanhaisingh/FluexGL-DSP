@@ -62,4 +62,10 @@ export interface AudioClipEventMap {
 
 export interface DspPipelineInitializationOptions {
     pathToWasm: string;
+    pathToWorklet: string;
+}
+
+export interface DspPipelineInitializationState {
+    success: boolean;
+    workletBlobUrl: string;
 }
