@@ -27,26 +27,61 @@ new Channel(options?: ChannelOptions): Channel;
 
 ## Properties
 
-### id: ``string``
+### ``id: string``
 An unique id, automatically generated when constructing a new channel. Should NOT be changed.
+```ts
+class Channel {
+    public id: string;
+}
+```
 
-### effects: [``Effector[]``](./Effector.md)
-An array with applied effects.
+### ``effects: Effector[]``
+An array with applied effects. See [``Effector``](./Effector.md) for more details.
+```ts
+class Channel {
+    public effects: Effector[];
+}
+```
 
-### label: ``string``
+### ``label: string``
 Custom channel label. Useful for debugging.
+```ts
+class Channel {
+    public label: string;
+}
+```
 
-### parentialContext: ``AudioContext`` | ``null``
+### ``parentialContext: AudioContext | null``
 The parential context, usually inherited from the master channel.
+```ts
+class Channel {
+    public parentialContext: AudioContext | null;
+}
+```
 
-### parentialMasterChannel: [``Master``](./Master.md) | ``null``
-The parential channel, usually a master channel.
+### ``parentialMasterChannel: Master | null``
+The parential channel, usually a master channel. See [``Master``](./Master.md) for more details.
+```ts
+class Channel {
+    public parentialMasterChannel: Master | null;
+}
+```
 
-### audioClips: [``AudioClip[]``](./AudioClip.md)
-An array with audio clips.
+### ``audioClips: AudioClip[]``
+An array with audio clips. See [``AudioClip``](./AudioClip.md) for more details.
+```ts
+class Channel {
+    public audioClips: AudioClip[];
+}
+```
 
-### gainNode: ``GainNode`` | ``null``
+### ``gainNode: GainNode | null``
 Main channel gain node. Can be tweaked.
+```ts
+class Channel {
+    public gainNode: GainNode | null;
+}
+```
 
 ### stereoPannerNode: ``StereoPannerNode`` | ``null``
 Main stereo panner node. Can be tweaked.
