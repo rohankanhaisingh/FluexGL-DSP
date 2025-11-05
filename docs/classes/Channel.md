@@ -83,17 +83,37 @@ class Channel {
 }
 ```
 
-### stereoPannerNode: ``StereoPannerNode`` | ``null``
+### ``stereoPannerNode: StereoPannerNode | null``
 Main stereo panner node. Can be tweaked.
+```ts
+class Channel {
+    public stereoPannerNode: StereoPannerNode | null;
+}
+```
 
-### audioClipsInputGainNode: ``GainNode`` | ``null``
+### ``audioClipsInputGainNode: GainNode | null``
 Gain node specifically made as output gain node for audio clips. Should left behind and not be interacted with.
+```ts
+class Channel {
+    audioClipsInputGainNode: GainNode | null;
+}
+```
 
-### volume: ``number`` | ``null``
+### ``volume: number | null``
 Volume of the channel, gets the value from the gain node. Will return ``null`` if the gain node is undefined.
+```ts
+class Channel {
+    public get volume(): number | null;
+}
+```
 
-### panLevel: ``number`` | ``null``
+### ``panLevel: number | null``
 Pan level of the channel, gets the value from the stereo panner node. Will return ``null`` if the stereo panner node is undefined.
+```ts
+class Chanel {
+    public get panLevel(): number | null;
+}
+```
 
 ## Methods
 
