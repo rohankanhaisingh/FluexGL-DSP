@@ -52,7 +52,8 @@ export {
     Channel,
     Effector,
     Master,
-    AudioClip
+    AudioClip,
+    DspPipeline
 } from "./core/exports";
 
 export {
@@ -62,6 +63,7 @@ export {
     ResolveDefaultAudioInputDevice,
     ResolveDefaultAudioOutputDevice,
     LoadAudioSource,
+    LoadWorkletOnMasterChannel,
 } from "./utilities/helpers";
 
 export {
@@ -70,7 +72,6 @@ export {
 
 export {
     hasInitializedWasm,
-    LoadWorkletOnMasterChannel
 } from "./utilities/web-assembly";
 
 export {

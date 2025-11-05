@@ -2,11 +2,12 @@ import mime from "mime";
 import { v4 } from "uuid";
 
 import { AudioDevice } from "../core/classes/AudioDevice";
+import { Master } from "../core/classes/Master";
 
 import { Debug } from "./debugger";
 import { SUPPORTED_FILE_TYPES } from "./constants";
 
-import { LoadWorkletOnMasterChannel, LoadWebAssemblyModule } from "./web-assembly";
+import { LoadWebAssemblyModule } from "./web-assembly";
 import { ErrorCodes, WarningCodes } from "../console-codes";
 
 import { LoadAudioSourceOptions, AudioSourceData, DspPipelineInitializationOptions, DspPipelineInitializationState } from "../typings";
@@ -187,4 +188,22 @@ export function ConstructProcessorWorklet(code: string): string {
     });
 
     return URL.createObjectURL(blob);
+}
+
+export async function LoadWorkletOnMasterChannel(master: Master, workletBlobUrl: string) {
+    Debug.Log("Loading worklet modules on master channel...", [ `Channel ID: ${master.id}` ]);
+
+    const context: AudioContext = master.context,
+        start: number = Date.now();
+
+    await context.audioWorklet.addModule(workletBlobUrl);
+
+    const end: number = Date.now(),
+        difference: number = end - start;
+
+    Debug.Success("Succesfully loaded audio processor worklets into master channel.", [
+        `Executed in ${difference}ms.`,
+    ]);
+
+    return true;
 }
