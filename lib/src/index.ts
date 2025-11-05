@@ -71,7 +71,7 @@ export {
 export {
     hasInitializedWasm,
     LoadWorkletOnMasterChannel
-} from "./web-assembly";
+} from "./utilities/web-assembly";
 
 export {
     FluexGLAudioDescriptor,

@@ -1,4 +1,4 @@
-import { compiledWebAssemblyModule } from "../../web-assembly";
+import { compiledWebAssemblyModule } from "../../utilities/web-assembly";
 import { Effector } from "../../core/classes/Effector";
 import { Debug } from "../../utilities/debugger";
 
