@@ -74,7 +74,7 @@ export {
     hasInitializedWasm,
 } from "./utilities/web-assembly";
 
-export {
+export type {
     FluexGLAudioDescriptor,
     FluexGLAudioDebuggerOptions,
     FluexGLAudioOptions,
