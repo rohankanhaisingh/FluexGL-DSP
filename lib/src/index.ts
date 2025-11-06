@@ -88,5 +88,6 @@ export {
     AudioClipAnalyserProperty,
     AudioClipAnalyserType,
     DspPipelineInitializationOptions,
-    DspPipelineInitializationState
+    DspPipelineInitializationState,
+    ChorusEffectOptions
 } from "./typings";

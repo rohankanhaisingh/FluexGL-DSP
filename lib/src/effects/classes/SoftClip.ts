@@ -26,12 +26,11 @@ export class SoftClip extends Effector {
             }
         });
 
-        this.gainNode = this.audioWorkletNode as unknown as GainNode;
         this.parentialContext = parentialContext;
     }
 
     public SetDrive(drive: number): SoftClip {
-        
+
         if(this.audioWorkletNode) this.audioWorkletNode.port.postMessage({
             type: "set-drive",
             value: drive

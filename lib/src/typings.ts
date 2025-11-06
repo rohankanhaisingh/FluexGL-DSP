@@ -69,3 +69,11 @@ export interface DspPipelineInitializationState {
     success: boolean;
     workletBlobUrl: string;
 }
+
+export interface ChorusEffectOptions {
+    baseDelayMs?: number;
+    depthMs?: number;
+    rateHz?: number;
+    mix?: number;
+    feedback?: number;  
+}

@@ -39,28 +39,28 @@ export class Channel {
         this.audioClipsInputGainNode.disconnect();
 
         for (const effect of this.effects) {
-            effect.gainNode?.disconnect();
+            effect.audioWorkletNode?.disconnect();
         }
 
-        const activeEffects = this.effects.filter(e => !!e.gainNode /* && e.enabled !== false */);
+        const activeEffects = this.effects.filter(e => !!e.audioWorkletNode /* && e.enabled !== false */);
 
         if (activeEffects.length === 0) {
 
             this.audioClipsInputGainNode.connect(this.gainNode);
         } else {
 
-            const firstEffectGain = activeEffects[0].gainNode!;
+            const firstEffectGain = activeEffects[0].audioWorkletNode!;
             this.audioClipsInputGainNode.connect(firstEffectGain);
 
             for (let i = 0; i < activeEffects.length - 1; i++) {
                 
-                const current = activeEffects[i].gainNode!;
-                const next = activeEffects[i + 1].gainNode!;
+                const current = activeEffects[i].audioWorkletNode!;
+                const next = activeEffects[i + 1].audioWorkletNode!;
 
                 current.connect(next);
             }
 
-            const lastEffectGain = activeEffects[activeEffects.length - 1].gainNode!;
+            const lastEffectGain = activeEffects[activeEffects.length - 1].audioWorkletNode!;
 
             lastEffectGain.connect(this.gainNode);
         }
