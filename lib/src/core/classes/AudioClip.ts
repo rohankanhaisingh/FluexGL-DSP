@@ -31,13 +31,13 @@ export class AudioClip {
 
     public preAnalyserOptions: AnalyserOptions = {};
     public postAnalyserOptions: AnalyserOptions = {};
-    
+
     public preAnalyserFloatArrayBuffer = new Float32Array();
     public postAnalyserFloatArrayBuffer = new Float32Array();
-    
+
     public preAnalyserByteArrayBuffer = new Uint8Array();
     public postAnalyserByteArrayBuffer = new Uint8Array();
-    
+
     private audioBufferSourceNodes: AudioBufferSourceNode[] = [];
     private maxAudioBufferSourceNodes: number = 1;
 
@@ -115,7 +115,7 @@ export class AudioClip {
 
     public InitializeAudioClipOnAttaching(channel: Channel): AudioClip | null {
 
-        if(!channel.parentialContext || !channel.audioClipsInputGainNode) {
+        if (!channel.parentialContext || !channel.audioClipsInputGainNode) {
 
             Debug.Error("Could not initialize audio clip on channel attachment, because channel it's master channel has not been defined.", [
                 `Call .AttachChannel([channel<"${channel.id}"> Channel]) on the master channel.`
@@ -133,7 +133,7 @@ export class AudioClip {
         return this;
     }
 
-    public Play(timestamp?: number, offset = 0): AudioClip | null {
+    public Play(timestamp?: number, offset?: number): AudioClip | null {
 
         if (!this.hasAttachedToChannel || !this.parentialAudioContext || !this.parentialChannel) {
             Debug.Error("Could not play the audio node because it is not attached to a channel", [
@@ -150,14 +150,14 @@ export class AudioClip {
         const bufferSource: AudioBufferSourceNode | null = this.createBufferSource();
 
         if (!bufferSource) {
-
             Debug.Error("Something went wrong.");
-
             return null;
         }
 
+        const actualOffset = offset ?? this.offsetAtStart ?? 0;
+
         this.startTime = context.currentTime;
-        this.offsetAtStart = offset;
+        this.offsetAtStart = actualOffset;
         this.isPlaying = true;
 
         if (this.progressInterval) clearInterval(this.progressInterval);
@@ -200,10 +200,33 @@ export class AudioClip {
         this.audioBufferSourceNodes.push(bufferSource);
         this.rebuildNodeChain();
 
-        bufferSource.start(timestamp ?? this.startTime, offset);
+        bufferSource.start(timestamp ?? this.startTime, actualOffset);
 
         return this;
     }
+
+    public Seek(seconds: number): AudioClip | null {
+
+        if (!this.parentialAudioContext || !this.hasAttachedToChannel) {
+            Debug.Error("Could not seek because the clip is not attached to a channel.", [
+                `Clip ID: ${this.id}`
+            ]);
+            return null;
+        }
+
+        const clamped = Math.max(0, Math.min(seconds, this.duration));
+
+        if (!this.isPlaying) {
+            this.offsetAtStart = clamped;
+            return this;
+        }
+
+        this.Stop();
+        this.Play(undefined, clamped);
+
+        return this;
+    }
+
 
     public Stop(): AudioClip | null {
 
@@ -421,7 +444,7 @@ export class AudioClip {
     public SetAnalyserOption(analyserType: AudioClipAnalyserType, property: AudioClipAnalyserProperty, value: number) {
 
         const node = analyserType === "pre" ? this.preAnalyser : this.postAnalyser;
-        
+
         if (node) switch (property) {
             case "fftSize": node.fftSize = value as AnalyserNode["fftSize"]; break;
             case "minDecibels": node.minDecibels = value; break;
@@ -431,7 +454,7 @@ export class AudioClip {
         }
 
         const opts = analyserType === "pre" ? this.preAnalyserOptions : this.postAnalyserOptions;
-        
+
         switch (property) {
             case "fftSize": opts.fftSize = value as AnalyserNode["fftSize"]; break;
             case "minDecibels": opts.minDecibels = value; break;
@@ -445,10 +468,10 @@ export class AudioClip {
 
     public GetWaveformFloatData(analyserType: AudioClipAnalyserType): Float32Array | null {
 
-        if(analyserType === "pre" && this.preAnalyser) {
+        if (analyserType === "pre" && this.preAnalyser) {
             this.preAnalyser.getFloatTimeDomainData(this.preAnalyserFloatArrayBuffer);
             return this.preAnalyserFloatArrayBuffer;
-        } else if(analyserType === "post" && this.postAnalyser) {
+        } else if (analyserType === "post" && this.postAnalyser) {
             this.postAnalyser.getFloatTimeDomainData(this.postAnalyserFloatArrayBuffer);
             return this.postAnalyserFloatArrayBuffer;
         }
@@ -458,7 +481,7 @@ export class AudioClip {
 
     public GetWaveformByteData(analyserType: AudioClipAnalyserType): Uint8Array | null {
 
-        if(!this.preAnalyser || !this.postAnalyser) {
+        if (!this.preAnalyser || !this.postAnalyser) {
 
             Debug.Error("Could not get byte waveform data because the pre analyser or post analyser has not been enabled.", [
                 "Call .EnablePreAnalyser() or .EnablePostAnalyser() before getting waveform data."
@@ -467,14 +490,14 @@ export class AudioClip {
             return null;
         }
 
-        switch(analyserType) {
+        switch (analyserType) {
             case "pre":
                 this.preAnalyser.getByteTimeDomainData(this.preAnalyserByteArrayBuffer);
                 return this.preAnalyserByteArrayBuffer;
             case "post":
                 this.postAnalyser.getByteTimeDomainData(this.postAnalyserByteArrayBuffer);
                 return this.postAnalyserByteArrayBuffer;
-            default: 
+            default:
                 return null;
         }
     }
