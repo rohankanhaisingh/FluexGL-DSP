@@ -122,10 +122,10 @@ export async function ResolveDefaultAudioOutputDevice(init: DspPipelineInitializ
  * Resolves the default audio input device.
  * @returns 
  */
-export async function ResolveDefaultAudioInputDevice(): Promise<AudioDevice | null> {
-
+export async function ResolveDefaultAudioInputDevice(init: DspPipelineInitializationState): Promise<AudioDevice | null> {
+    Debug.Log("Attempting to resolve default audio output device...");
+    
     const audioDeviceInfos: MediaDeviceInfo[] = [];
-
     const devices = await navigator.mediaDevices.enumerateDevices();
 
     for (let device of devices)
@@ -134,7 +134,13 @@ export async function ResolveDefaultAudioInputDevice(): Promise<AudioDevice | nu
 
     devices.length === 0 && Debug.Warn("No default audio device found.", [], WarningCodes.NO_DEFAULT_AUDIO_DEVICE_FOUND);
 
-    return devices.length === 0 ? null : new AudioDevice(audioDeviceInfos[0]);
+    const defaultAudioDevice = devices.length === 0 ? null : new AudioDevice(audioDeviceInfos[0]);
+
+    if(!defaultAudioDevice) return null;
+
+    await LoadWorkletOnMasterChannel(defaultAudioDevice.masterChannel, init.workletBlobUrl);
+
+    return defaultAudioDevice;
 }
 
 /**
