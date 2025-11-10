@@ -17,6 +17,8 @@ export class AudioClip {
     public startTime: number = 0;
     public offsetAtStart: number = 0;
 
+    public progressUpdateSpeed: number = 20;
+
     public gainNode: GainNode | null = null;
     public stereoPannerNode: StereoPannerNode | null = null;
 
@@ -182,7 +184,7 @@ export class AudioClip {
             self.events.progress.forEach(function (cb: (event: ProgressPayload) => void) {
                 cb(progressPayload);
             });
-        }, 20);
+        }, this.progressUpdateSpeed);
 
         bufferSource.addEventListener("ended", function () {
 
@@ -512,6 +514,14 @@ export class AudioClip {
 
     public get duration(): number {
         return this.data.audioBuffer.duration;
+    }
+
+    public get volume(): number {
+        return this.gainNode?.gain.value ?? 0;
+    }
+
+    public get stereoPanning(): number {
+        return this.stereoPannerNode?.pan.value ?? 1;
     }
 
     public get formattedDuration(): string {
