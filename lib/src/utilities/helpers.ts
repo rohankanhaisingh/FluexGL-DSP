@@ -99,7 +99,7 @@ export async function ResolveAudioInputDevices(): Promise<AudioDevice[]> {
  */
 export async function ResolveDefaultAudioOutputDevice(init: DspPipelineInitializationState): Promise<AudioDevice | null> {
     Debug.Log("Attempting to resolve default audio output device...");
-    
+
     const audioDeviceInfos: MediaDeviceInfo[] = [];
     const devices = await navigator.mediaDevices.enumerateDevices();
 
@@ -111,7 +111,7 @@ export async function ResolveDefaultAudioOutputDevice(init: DspPipelineInitializ
 
     const defaultAudioDevice = devices.length === 0 ? null : new AudioDevice(audioDeviceInfos[0]);
 
-    if(!defaultAudioDevice) return null;
+    if (!defaultAudioDevice) return null;
 
     await LoadWorkletOnMasterChannel(defaultAudioDevice.masterChannel, init.workletBlobUrl);
 
@@ -124,7 +124,7 @@ export async function ResolveDefaultAudioOutputDevice(init: DspPipelineInitializ
  */
 export async function ResolveDefaultAudioInputDevice(init: DspPipelineInitializationState): Promise<AudioDevice | null> {
     Debug.Log("Attempting to resolve default audio output device...");
-    
+
     const audioDeviceInfos: MediaDeviceInfo[] = [];
     const devices = await navigator.mediaDevices.enumerateDevices();
 
@@ -136,7 +136,7 @@ export async function ResolveDefaultAudioInputDevice(init: DspPipelineInitializa
 
     const defaultAudioDevice = devices.length === 0 ? null : new AudioDevice(audioDeviceInfos[0]);
 
-    if(!defaultAudioDevice) return null;
+    if (!defaultAudioDevice) return null;
 
     await LoadWorkletOnMasterChannel(defaultAudioDevice.masterChannel, init.workletBlobUrl);
 
@@ -187,6 +187,25 @@ export async function LoadAudioSource(path: string, options: Partial<LoadAudioSo
     }
 }
 
+/**
+ * Loads an audio file from a blob.
+ */
+export async function LoadAudioSourceFromBlob(blob: Blob): Promise<AudioSourceData | null> {
+
+    const tempContext: AudioContext = new AudioContext(),
+        arrayBuffer: ArrayBuffer = await blob.arrayBuffer();
+
+    console.log(arrayBuffer);
+
+    const audioBuffer: AudioBuffer = await tempContext.decodeAudioData(arrayBuffer);
+
+    return {
+        id: v4(),
+        timestamp: Date.now(),
+        audioBuffer, arrayBuffer
+    };
+}
+
 export function ConstructProcessorWorklet(code: string): string {
 
     const blob = new Blob([code], {
@@ -197,7 +216,7 @@ export function ConstructProcessorWorklet(code: string): string {
 }
 
 export async function LoadWorkletOnMasterChannel(master: Master, workletBlobUrl: string) {
-    Debug.Log("Loading worklet modules on master channel...", [ `Channel ID: ${master.id}` ]);
+    Debug.Log("Loading worklet modules on master channel...", [`Channel ID: ${master.id}`]);
 
     const context: AudioContext = master.context,
         start: number = Date.now();

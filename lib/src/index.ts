@@ -63,6 +63,7 @@ export {
     ResolveDefaultAudioInputDevice,
     ResolveDefaultAudioOutputDevice,
     LoadAudioSource,
+    LoadAudioSourceFromBlob,
     LoadWorkletOnMasterChannel,
 } from "./utilities/helpers";
 
