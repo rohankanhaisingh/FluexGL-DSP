@@ -1,10 +1,12 @@
 {
-    "name": "fluexgl-audio",
-    "version": "1.0.0",
-    "description": "An audio library which works with FluexGL",
-    "main": "index.js",
+    "name": "@fluex/fluexgl-dsp",
+    "version": "0.1.2",
+    "description": "An open-source, web-based DSP library developed alongside FluexGL, designed for creating and manipulating sounds in various contexts.",
+    "main": "lib/dist/index.js",
+    "types": "lib/dist/index.d.ts",
     "scripts": {
-        "typecheck": "tsc -p lib/tsconfig.json --noEmit"
+        "typecheck": "tsc -p lib/tsconfig.json --noEmit",
+        "build": "tsc --build"
     },
     "keywords": [
         "Audio",
@@ -14,8 +16,13 @@
         "processing",
         "DSP"
     ],
+    "files": [
+        "lib",
+        "README.md",
+        "LICENSE"
+    ],
     "author": "Rohan Kanhaisingh",
-    "license": "ISC",
+    "license": "MIT",
     "dependencies": {
         "@types/uuid": "^10.0.0",
         "date-fns": "^4.1.0",
@@ -27,5 +34,17 @@
     "devDependencies": {
         "@types/node": "^24.9.2",
         "concurrently": "^9.2.1"
-    }
+    },
+    "directories": {
+        "doc": "docs",
+        "lib": "lib"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/rohankanhaisingh/FluexGL-DSP.git"
+    },
+    "bugs": {
+        "url": "https://github.com/rohankanhaisingh/FluexGL-DSP/issues"
+    },
+    "homepage": "https://github.com/rohankanhaisingh/FluexGL-DSP#readme"
 }

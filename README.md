@@ -15,7 +15,7 @@ It integrates smoothly with FluexGL, making it ideal for use in games, interacti
 See down below for more details.
 
 ```
-$ npm install @fluexgl/dsp
+$ npm i @fluex/fluexgl-dsp
 ```
 
 ## ⚡ Quick start
