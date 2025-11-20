@@ -154,3 +154,18 @@ Adds an effect to this channel. Cannot add the same effect on this channel. Shou
 Removes an effect from this channel. Cannot remove if the effect does not exist on this channel.
 
 - ``effect: Effector``: An [``Effector``](./Effector.md) extended class instance.
+
+### ``SetAnalyserFftSize(value: number): number | null``
+Sets the FFT size on the analyser. De default value is 32 to improve performance. Be aware that the higher the value, the more processing power it costs the analyse the frequencies.
+
+- ``value: number``: Unsigned long representing the window size in samples. See [https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/fftSize](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/fftSize) for more details.
+
+### ``GetWaveformFloatData(): Float32Array | null``
+Uses the analyser to analyse the frequencies and put it into the channel's Float32Array. Will return ``null`` if the analyser is undefined.
+
+Useful for monitoring the output of the channel, with the audio clips and effects merged.
+
+### ``GetWaveformByteData(): Uint8Array | null``
+Uses the analyser to analyse the frequencies and put it into the channel's Uint8Array. Will return ``null`` if the analyser is undefined.
+
+Useful for monitoring the output of the channel, with the audio clips and effects merged.
