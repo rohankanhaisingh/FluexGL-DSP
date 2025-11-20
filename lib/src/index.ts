@@ -65,6 +65,7 @@ export {
     LoadAudioSource,
     LoadAudioSourceFromBlob,
     LoadWorkletOnMasterChannel,
+    EnumerateWorkingEffects
 } from "./utilities/helpers";
 
 export {

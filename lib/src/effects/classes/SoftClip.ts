@@ -4,6 +4,9 @@ import { Debug } from "../../utilities/debugger";
 
 export class SoftClip extends Effector {
 
+    public label: string | null = "SoftClip";
+    static name: string = "SoftClip";
+
     constructor(public drive: number = 1) {
         super();
     }

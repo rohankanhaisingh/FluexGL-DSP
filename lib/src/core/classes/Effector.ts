@@ -7,5 +7,7 @@ export abstract class Effector {
     public audioWorkletNode: AudioWorkletNode | null = null;
     public parentialContext: AudioContext | null = null;
 
+    static name: string = "Effector";
+
     public abstract InitializeOnAttachment(parentialContext: AudioContext): Promise<void>;
 }

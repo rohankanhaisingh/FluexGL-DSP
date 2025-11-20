@@ -10,6 +10,8 @@ import { SUPPORTED_FILE_TYPES } from "./constants";
 import { LoadWebAssemblyModule } from "./web-assembly";
 import { ErrorCodes, WarningCodes } from "../console-codes";
 
+import { Chorus, SoftClip } from "../effects/exports"
+
 import { LoadAudioSourceOptions, AudioSourceData, DspPipelineInitializationOptions, DspPipelineInitializationState } from "../typings";
 
 /**
@@ -231,4 +233,15 @@ export async function LoadWorkletOnMasterChannel(master: Master, workletBlobUrl:
     ]);
 
     return true;
+}
+
+/**
+ * Enumerates a list of working effects in an array of strings.
+ * Useful for listing effects in a GUI.
+ */
+export function EnumerateWorkingEffects(): string[] {
+    return [
+        Chorus.name,
+        SoftClip.name
+    ]
 }
