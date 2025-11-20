@@ -91,6 +91,15 @@ class Channel {
 }
 ```
 
+### ``analyserNode: AnalyserNode | null``
+Analyser node, cannot be tweaked.
+
+```ts
+class Channel {
+    public analyserNode: AnalyserNode | null;
+}
+```
+
 ### ``audioClipsInputGainNode: GainNode | null``
 Gain node specifically made as output gain node for audio clips. Should left behind and not be interacted with.
 ```ts
