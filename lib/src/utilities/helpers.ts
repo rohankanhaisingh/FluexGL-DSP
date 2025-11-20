@@ -197,8 +197,6 @@ export async function LoadAudioSourceFromBlob(blob: Blob): Promise<AudioSourceDa
     const tempContext: AudioContext = new AudioContext(),
         arrayBuffer: ArrayBuffer = await blob.arrayBuffer();
 
-    console.log(arrayBuffer);
-
     const audioBuffer: AudioBuffer = await tempContext.decodeAudioData(arrayBuffer);
 
     return {

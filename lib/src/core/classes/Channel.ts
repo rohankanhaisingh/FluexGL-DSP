@@ -21,10 +21,13 @@ export class Channel {
     public gainNode: GainNode | null = null;
     public stereoPannerNode: StereoPannerNode | null = null;
 
+    public analyserNode: AnalyserNode | null = null;
+    public analyserFloatArrayBuffer = new Float32Array();
+    public analyserByteArrayBuffer = new Uint8Array();
+
     public audioClipsInputGainNode: GainNode | null = null;
 
     constructor(public options: Partial<ChannelOptions> = { maxAudioNodes: 8, maxEffects: 8 }) {
-
         this.label = options.label ?? null;
     }
 
@@ -78,12 +81,17 @@ export class Channel {
 
         this.gainNode = new GainNode(this.parentialContext);
         this.stereoPannerNode = new StereoPannerNode(this.parentialContext);
+        this.analyserNode = new AnalyserNode(this.parentialContext);
+
+        // The fft size is automatically set to 32 to improve performance.
+        this.analyserNode.fftSize = 32;
 
         this.audioClipsInputGainNode = new GainNode(this.parentialContext);
 
         this.audioClipsInputGainNode.connect(this.stereoPannerNode);
         this.stereoPannerNode.connect(this.gainNode);
-        this.gainNode.connect(this.parentialMasterChannel.gainNode);
+        this.gainNode.connect(this.analyserNode);
+        this.analyserNode.connect(this.parentialMasterChannel.gainNode);
     }
 
     public SetLabel(label: string): void {
@@ -181,6 +189,38 @@ export class Channel {
         });
 
         this.rebuildEffectChain();
+    }
+
+    public SetAnalyserFftSize(value: number): number | null {
+
+        if(!this.analyserNode) {
+            Debug.Error("Could not set FFT size on analyser because the analyser has not been defined.");
+            return null;
+        }
+
+        return this.analyserNode.fftSize = value;
+    }
+
+    public GetWaveformFloatData(): Float32Array | null {
+        
+        if(!this.analyserNode) {
+            Debug.Error("Could not get waveform float data, because the analyser has not been defined.");
+            return null;
+        }
+
+        this.analyserNode.getFloatTimeDomainData(this.analyserFloatArrayBuffer);
+        return this.analyserFloatArrayBuffer;
+    }
+
+    public GetWaveformByteData(): Uint8Array | null {
+
+        if(!this.analyserNode) {
+            Debug.Error("Could not get waveform float data, because the analyser has not been defined.");
+            return null;
+        }
+
+        this.analyserNode.getByteTimeDomainData(this.analyserByteArrayBuffer);
+        return this.analyserByteArrayBuffer;
     }
 
     // Public getters and setters
