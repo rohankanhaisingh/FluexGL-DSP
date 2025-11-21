@@ -305,13 +305,7 @@ export class AudioClip {
 
     public DisconnectAllAudioBufferSourceNodes(): boolean {
 
-        if (!this.parentialAudioContext) {
-            Debug.Error("Could not disconnect audio buffer source nodes, because the parential audio contex has not been found", [
-                `Clip ID: ${this.id}`,
-                `Parential channel id: ${this.parentialChannel ? this.parentialChannel.id : "none"}`
-            ])
-            return false;
-        }
+        if (!this.parentialAudioContext) return false;
 
         const contextCurrentTime: number = this.parentialAudioContext?.currentTime;
 
