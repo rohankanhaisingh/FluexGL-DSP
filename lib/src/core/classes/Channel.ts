@@ -139,6 +139,15 @@ export class Channel {
         });
     }
 
+    public HasAudioClip(clip: AudioClip): boolean {
+        
+        for(let _clip of this.audioClips) {
+            if(_clip.id === clip.id) return true;
+        }
+
+        return false;
+    }
+
     public SetVolume(volume: number): void {
 
         if (!this.gainNode) return Debug.Error("Could not set channel volume because the channel is not attached to a master channel.", [
