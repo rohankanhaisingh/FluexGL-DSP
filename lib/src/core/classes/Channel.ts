@@ -79,8 +79,6 @@ export class Channel {
 
     public InitializeChannelOnMasterAttachment(master: Master) {
 
-        console.log(this.analyserOptions);
-
         this.parentialMasterChannel = master;
         this.parentialContext = master.context;
 
