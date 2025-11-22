@@ -79,6 +79,8 @@ export class Channel {
 
     public InitializeChannelOnMasterAttachment(master: Master) {
 
+        console.log(this.analyserOptions);
+
         this.parentialMasterChannel = master;
         this.parentialContext = master.context;
 
@@ -250,17 +252,13 @@ export class Channel {
 
     public SetAnalyserOptions(options: AnalyserOptions): Channel | null {
 
-        if(!this.analyserNode) {
+        this.analyserOptions = {...options};
 
-            Debug.Error("Could not set analyser options because the analyyser is not defined.");
-            return null;
-        }
-
-        this.analyserOptions = options;
+        if (!this.analyserNode) return null;
 
         this.analyserNode.minDecibels = options.minDecibels ?? this.analyserNode.minDecibels;
         this.analyserNode.maxDecibels = options.maxDecibels ?? this.analyserNode.maxDecibels;
-        this.analyserNode.fftSize = options.fftSize ?? this.analyserNode.fftSize;
+        this.analyserNode.fftSize = options.fftSize ?? 32;
         this.analyserNode.smoothingTimeConstant = options.smoothingTimeConstant ?? this.analyserNode.smoothingTimeConstant;
 
         this.analyserByteArrayBuffer = new Uint8Array(this.analyserNode.fftSize);
