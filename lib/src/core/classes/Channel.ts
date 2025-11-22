@@ -20,12 +20,15 @@ export class Channel {
 
     public gainNode: GainNode | null = null;
     public stereoPannerNode: StereoPannerNode | null = null;
-
     public analyserNode: AnalyserNode | null = null;
+    public channelSplitterNode: ChannelSplitterNode | null = null;
+
     public analyserFloatArrayBuffer = new Float32Array();
     public analyserByteArrayBuffer = new Uint8Array();
 
     public audioClipsInputGainNode: GainNode | null = null;
+
+    public analyserOptions: AnalyserOptions = { fftSize: 32 };
 
     constructor(public options: Partial<ChannelOptions> = { maxAudioNodes: 8, maxEffects: 8 }) {
         this.label = options.label ?? null;
@@ -45,7 +48,7 @@ export class Channel {
             effect.audioWorkletNode?.disconnect();
         }
 
-        const activeEffects = this.effects.filter(e => !!e.audioWorkletNode /* && e.enabled !== false */);
+        const activeEffects = this.effects.filter(e => !!e.audioWorkletNode);
 
         if (activeEffects.length === 0) {
 
@@ -56,7 +59,7 @@ export class Channel {
             this.audioClipsInputGainNode.connect(firstEffectGain);
 
             for (let i = 0; i < activeEffects.length - 1; i++) {
-                
+
                 const current = activeEffects[i].audioWorkletNode!;
                 const next = activeEffects[i + 1].audioWorkletNode!;
 
@@ -81,10 +84,10 @@ export class Channel {
 
         this.gainNode = new GainNode(this.parentialContext);
         this.stereoPannerNode = new StereoPannerNode(this.parentialContext);
-        this.analyserNode = new AnalyserNode(this.parentialContext);
+        this.analyserNode = new AnalyserNode(this.parentialContext, this.analyserOptions);
 
-        // The fft size is automatically set to 32 to improve performance.
-        this.analyserNode.fftSize = 32;
+        this.analyserFloatArrayBuffer = new Float32Array(this.analyserNode.fftSize);
+        this.analyserByteArrayBuffer = new Uint8Array(this.analyserNode.fftSize);
 
         this.audioClipsInputGainNode = new GainNode(this.parentialContext);
 
@@ -140,9 +143,9 @@ export class Channel {
     }
 
     public HasAudioClip(clip: AudioClip): boolean {
-        
-        for(let _clip of this.audioClips) {
-            if(_clip.id === clip.id) return true;
+
+        for (let _clip of this.audioClips) {
+            if (_clip.id === clip.id) return true;
         }
 
         return false;
@@ -202,19 +205,28 @@ export class Channel {
 
     public SetAnalyserFftSize(value: number): number | null {
 
-        if(!this.analyserNode) {
+        if (!this.analyserNode) {
             Debug.Error("Could not set FFT size on analyser because the analyser has not been defined.");
             return null;
         }
 
-        return this.analyserNode.fftSize = value;
+        this.analyserNode.fftSize = value;
+
+        this.analyserFloatArrayBuffer = new Float32Array(this.analyserNode.fftSize);
+        this.analyserByteArrayBuffer = new Uint8Array(this.analyserNode.fftSize);
+
+        return this.analyserNode.fftSize;
     }
 
     public GetWaveformFloatData(): Float32Array | null {
-        
-        if(!this.analyserNode) {
+
+        if (!this.analyserNode) {
             Debug.Error("Could not get waveform float data, because the analyser has not been defined.");
             return null;
+        }
+
+        if (this.analyserFloatArrayBuffer.length !== this.analyserNode.fftSize) {
+            this.analyserFloatArrayBuffer = new Float32Array(this.analyserNode.fftSize);
         }
 
         this.analyserNode.getFloatTimeDomainData(this.analyserFloatArrayBuffer);
@@ -223,13 +235,38 @@ export class Channel {
 
     public GetWaveformByteData(): Uint8Array | null {
 
-        if(!this.analyserNode) {
-            Debug.Error("Could not get waveform float data, because the analyser has not been defined.");
+        if (!this.analyserNode) {
+            Debug.Error("Could not get waveform byte data, because the analyser has not been defined.");
             return null;
+        }
+
+        if (this.analyserByteArrayBuffer.length !== this.analyserNode.fftSize) {
+            this.analyserByteArrayBuffer = new Uint8Array(this.analyserNode.fftSize);
         }
 
         this.analyserNode.getByteTimeDomainData(this.analyserByteArrayBuffer);
         return this.analyserByteArrayBuffer;
+    }
+
+    public SetAnalyserOptions(options: AnalyserOptions): Channel | null {
+
+        if(!this.analyserNode) {
+
+            Debug.Error("Could not set analyser options because the analyyser is not defined.");
+            return null;
+        }
+
+        this.analyserOptions = options;
+
+        this.analyserNode.minDecibels = options.minDecibels ?? this.analyserNode.minDecibels;
+        this.analyserNode.maxDecibels = options.maxDecibels ?? this.analyserNode.maxDecibels;
+        this.analyserNode.fftSize = options.fftSize ?? this.analyserNode.fftSize;
+        this.analyserNode.smoothingTimeConstant = options.smoothingTimeConstant ?? this.analyserNode.smoothingTimeConstant;
+
+        this.analyserByteArrayBuffer = new Uint8Array(this.analyserNode.fftSize);
+        this.analyserFloatArrayBuffer = new Float32Array(this.analyserNode.fftSize);
+
+        return this;
     }
 
     // Public getters and setters
