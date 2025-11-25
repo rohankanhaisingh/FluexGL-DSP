@@ -11,6 +11,7 @@ export class AudioClip {
 
     public id: string = v4();
     public hasAttachedToChannel: boolean = false;
+    public label: string | null = null;
 
     public loop: boolean = false;
     public isPlaying: boolean = false;
