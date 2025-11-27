@@ -187,6 +187,10 @@ export class Channel {
         this.rebuildEffectChain();
     }
 
+    public AttachEffect(effect: Effector): void {
+        return this.AddEffect(effect);
+    }
+
     public RemoveEffect(effect: Effector): void {
 
         if (!this.effects.includes(effect)) return Debug.Error("Could not remove effect, because it is not part of this channel.", [
@@ -201,6 +205,10 @@ export class Channel {
         });
 
         this.rebuildEffectChain();
+    }
+
+    public DetachEffect(effect: Effector): void {
+        return this.RemoveEffect(effect);
     }
 
     public SetAnalyserFftSize(value: number): number | null {
