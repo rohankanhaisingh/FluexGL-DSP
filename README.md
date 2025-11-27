@@ -85,3 +85,5 @@ The library also includes a powerful debugging system that allows developers to 
 ## Web Assembly
 
 FluexGL DSP is partially made using Web Assembly, and Rust as programming language. In order to use FluexGL DSP, the wasm source code must be provided when initializing the DSP pipeline. The source code can be found at the [FluexGL DSP WebAssembly Github repository](https://github.com/rohankanhaisingh/FluexGL-DSP-WebAssembly).
+
+😊
