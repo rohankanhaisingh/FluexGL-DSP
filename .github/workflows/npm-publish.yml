@@ -7,7 +7,6 @@ on:
 
 jobs:
   publish:
-    name: Publish package
     runs-on: ubuntu-latest
 
     steps:
@@ -21,17 +20,15 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: Build package
         run: npm run build
-
-      - name: Bump version (optional)
-        run: |
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
-          npm version patch -m "Automated version bump"
-          git push --follow-tags
 
       - name: Publish to npm
         run: npm publish --access public
