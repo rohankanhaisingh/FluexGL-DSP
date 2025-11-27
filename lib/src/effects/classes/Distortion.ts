@@ -2,7 +2,7 @@ import { Effector } from "../../core/classes/Effector";
 
 export class Distortion extends Effector {
 
-    static name: string = "Distortion";
+    public name: string = "Distortion";
 
     constructor() {
         super();

@@ -6,7 +6,7 @@ import { ChorusEffectOptions } from "../../typings";
 export class Chorus extends Effector {
 
     public label: string | null = "Chorus";
-    static name: string = "Chorus";
+    public name: string = "Chorus";
 
     public baseDelayMs: number = 15;
     public depthMs: number = 8;
