@@ -7,7 +7,7 @@ export class SoftClip extends Effector {
     public label: string | null = "SoftClip";
     public name: string = "SoftClip";
 
-    constructor(public drive: number = 1) {
+    constructor(public drive: number = 1, public gain: number = 1) {
         super();
     }
 
@@ -22,7 +22,8 @@ export class SoftClip extends Effector {
             numberOfOutputs: 1,
             outputChannelCount: [2],
             parameterData: {
-                drive: this.drive
+                drive: this.drive,
+                gain: this.gain
             },
             processorOptions: {
                 module: compiledWebAssemblyModule
@@ -40,6 +41,21 @@ export class SoftClip extends Effector {
         });
 
         this.drive = drive;
+        return this;
+    }
+
+    public GetDrive(): number {
+        return this.drive;
+    }
+
+    public SetGain(gain: number): SoftClip {
+
+        if(this.audioWorkletNode) this.audioWorkletNode.port.postMessage({
+            type: "set-gain",
+            value: gain
+        })
+
+        this.gain = gain;
         return this;
     }
 }
