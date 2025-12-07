@@ -6,6 +6,7 @@ export { Limiter } from "./classes/Limiter";
 export { Saturation } from "./classes/Saturation";
 export { StereoPanner } from "./classes/StereoPanner";
 export { SoftClip } from "./classes/SoftClip";
+export { HardClip } from "./classes/HardClip";
 
 export { Compressor } from "./classes/compressors/Compressor";
 export { MultibandCompressor } from "./classes/compressors/MultibandCompressor";

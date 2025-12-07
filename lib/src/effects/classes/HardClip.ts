@@ -2,10 +2,10 @@ import { compiledWebAssemblyModule } from "../../utilities/web-assembly";
 import { Effector } from "../../core/classes/Effector";
 import { Debug } from "../../utilities/debugger";
 
-export class SoftClip extends Effector {
+export class HardClip extends Effector {
 
-    public label: string | null = "SoftClip";
-    public name: string = "SoftClip";
+    public label: string | null = "HardClip";
+    public name: string = "HardClip";
 
     constructor(public drive: number = 1, public gain: number = 1) {
         super();
@@ -14,10 +14,10 @@ export class SoftClip extends Effector {
     public async InitializeOnAttachment(parentialContext: AudioContext): Promise<void> {
 
         if (!compiledWebAssemblyModule) return Debug.Error("Could not initialize effector because the nessecary WASM file has not been specified.", [
-            `Effector type: SoftClip`
+            `Effector type: HardClip`
         ]);
 
-        this.audioWorkletNode = new AudioWorkletNode(parentialContext, "SoftClipProcessor", {
+        this.audioWorkletNode = new AudioWorkletNode(parentialContext, "HardClipProcessor", {
             numberOfInputs: 1,
             numberOfOutputs: 1,
             outputChannelCount: [2],
@@ -33,7 +33,7 @@ export class SoftClip extends Effector {
         this.parentialContext = parentialContext;
     }
 
-    public SetDrive(drive: number): SoftClip {
+    public SetDrive(drive: number): HardClip {
 
         if (this.audioWorkletNode) this.audioWorkletNode.port.postMessage({
             type: "set-drive",
@@ -48,7 +48,7 @@ export class SoftClip extends Effector {
         return this.drive;
     }
 
-    public SetGain(gain: number): SoftClip {
+    public SetGain(gain: number): HardClip {
 
         if (this.audioWorkletNode) this.audioWorkletNode.port.postMessage({
             type: "set-gain",

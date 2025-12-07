@@ -44,7 +44,8 @@ export {
     GenericReverb,
     HallReverb,
     RoomReverb,
-    SoftClip
+    SoftClip,
+    HardClip
 } from "./effects/exports";
 
 export {
