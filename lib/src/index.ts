@@ -44,7 +44,8 @@ export {
     HallReverb,
     RoomReverb,
     SoftClip,
-    LowPassFilter
+    LowPassFilter,
+    HardClip
 } from "./effects/exports";
 
 export {
