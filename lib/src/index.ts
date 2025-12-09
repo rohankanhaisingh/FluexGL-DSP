@@ -29,7 +29,6 @@ export {
     Chorus,
     Distortion,
     Equalizer,
-    Filter,
     Limiter,
     Saturation,
     StereoPanner,
@@ -44,7 +43,8 @@ export {
     GenericReverb,
     HallReverb,
     RoomReverb,
-    SoftClip
+    SoftClip,
+    LowPassFilter
 } from "./effects/exports";
 
 export {
@@ -65,6 +65,7 @@ export {
     LoadAudioSource,
     LoadAudioSourceFromBlob,
     LoadWorkletOnMasterChannel,
+    SendMessageToWorklet
 } from "./utilities/helpers";
 
 export {
@@ -90,5 +91,9 @@ export type {
     AudioClipAnalyserType,
     DspPipelineInitializationOptions,
     DspPipelineInitializationState,
-    ChorusEffectOptions
+    ChorusEffectOptions,
+    LowPassFilterOptions,
+    LowPassFilterMessageCommandId,
+    ChorusMessageCommandId,
+    AudioWorkletProcessorNames
 } from "./typings";

@@ -7,6 +7,36 @@ export type AudioClipEvents  = {
     [K in keyof AudioClipEventMap]: AudioClipEventMap[K][];
 }
 
+export enum LowPassFilterMessageCommandId {
+    SetCutoff,
+    SetMinFrequency
+}
+
+export enum ChorusMessageCommandId {
+    SetBaseDelayMs,
+    SetDepthMs,
+    SetRateHz,
+    SetMix,
+    SetFeedback
+}
+
+export enum AudioWorkletProcessorNames {
+    Compressor = "CompressorProcessor",
+    MultibandCompressor = "MultibandCompressorProcessor",
+    AdvancedDelay = "AdvancedDelayProcessor",
+    MonoDelay = "MonoDelayProcessor",
+    PingPongDelay = "PingPongDelayProcessor",
+    StereoDelay = "StereoDelayProcessor",
+    LowPassFilter = "LowPassFilterProcessor",
+    HighPassFilter = "HighPassFilterProcessor",
+    BandPassFilter = "BandPassFilterProcessor",
+    NotchFilter = "NotchFilterProcessor",
+    Chorus = "ChorusProcessor",
+    Flanger = "FlangerProcessor",
+    Phaser = "PhaserProcessor",
+    Reverb = "ReverbProcessor"
+}
+
 export interface FluexGLAudioDebuggerOptions {
     breakOnError: boolean;
     showInfo: boolean;
@@ -71,9 +101,14 @@ export interface DspPipelineInitializationState {
 }
 
 export interface ChorusEffectOptions {
-    baseDelayMs?: number;
-    depthMs?: number;
-    rateHz?: number;
-    mix?: number;
-    feedback?: number;  
+    baseDelayMs: number;
+    depthMs: number;
+    rateHz: number;
+    mix: number;
+    feedback: number;  
+}
+
+export interface LowPassFilterOptions {
+    cutoff?: number;
+    minFrequency?: number;
 }

@@ -3,19 +3,14 @@ import { v4 } from "uuid";
 
 import { AudioDevice } from "../core/classes/AudioDevice";
 import { Master } from "../core/classes/Master";
-import { Effector } from "../core/classes/Effector";
 
 import { Debug } from "./debugger";
 import { SUPPORTED_FILE_TYPES } from "./constants";
 
-import { LoadWebAssemblyModule } from "./web-assembly";
+import { compiledWebAssemblyModule, LoadWebAssemblyModule } from "./web-assembly";
 import { ErrorCodes, WarningCodes } from "../console-codes";
 
-import { Chorus, SoftClip } from "../effects/exports";
-
-import * as Effects from "../effects/exports";
-
-import { LoadAudioSourceOptions, AudioSourceData, DspPipelineInitializationOptions, DspPipelineInitializationState } from "../typings";
+import { LoadAudioSourceOptions, AudioSourceData, DspPipelineInitializationOptions, DspPipelineInitializationState, AudioWorkletProcessorNames } from "../typings";
 
 /**
  * Initializes the DSP pipeline by requesting audio permissions and initializing the WASM module.
@@ -234,4 +229,37 @@ export async function LoadWorkletOnMasterChannel(master: Master, workletBlobUrl:
     ]);
 
     return true;
+}
+
+export function SendMessageToWorklet<T, K = any>(node: AudioWorkletNode | null, commandId: T, data: K) {
+
+    if (!node) return false;
+
+    node.port.postMessage({ commandId, data });
+
+    return true;
+}
+
+export function CreateAudioWorkletNode<T = any>(context: AudioContext, name: AudioWorkletProcessorNames | string, data: T) {
+
+    if (!compiledWebAssemblyModule) {
+        
+        Debug.Error("Failed to create audio worklet node, because the web assembly module has not been compiled properly.", [
+            `Request audio worklet node: ${name}.`
+        ]);
+        return null;
+    }
+
+    return new AudioWorkletNode(context, name, {
+        numberOfInputs: 1,
+        numberOfOutputs: 1,
+        outputChannelCount: [2],
+        parameterData: {
+            ...data,
+            sampleRate: context.sampleRate
+        },
+        processorOptions: {
+            module: compiledWebAssemblyModule
+        }
+    })
 }

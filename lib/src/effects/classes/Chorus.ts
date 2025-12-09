@@ -1,7 +1,6 @@
-import { compiledWebAssemblyModule } from "../../utilities/web-assembly";
+import { SendMessageToWorklet, CreateAudioWorkletNode } from "../../utilities/helpers";
 import { Effector } from "../../core/classes/Effector";
-import { Debug } from "../../utilities/debugger";
-import { ChorusEffectOptions } from "../../typings";
+import { ChorusEffectOptions, ChorusMessageCommandId, AudioWorkletProcessorNames } from "../../typings";
 
 export class Chorus extends Effector {
 
@@ -14,99 +13,54 @@ export class Chorus extends Effector {
     public mix: number = 0.5;
     public feedback: number = 0.2;
 
-    public options: ChorusEffectOptions = {};
-
-    private sampleRate: number = 0;
-
-    constructor(options?: ChorusEffectOptions) {
+    constructor({ baseDelayMs, depthMs, rateHz, mix, feedback }: Partial<ChorusEffectOptions>) {
         super();
 
-        this.options = {
-            baseDelayMs: this.baseDelayMs,
-            depthMs: this.depthMs,
-            rateHz: this.rateHz,
-            mix: this.mix,
-            feedback: this.mix,
-            ...options
-        }
+        this.baseDelayMs = baseDelayMs ?? this.baseDelayMs;
+        this.depthMs = depthMs ?? this.depthMs;
+        this.rateHz = rateHz ?? this.rateHz;
+        this.mix = mix ?? this.mix;
+        this.feedback = feedback ?? this.feedback;
     }
 
     public async InitializeOnAttachment(parentialContext: AudioContext): Promise<void> {
 
-        if (!compiledWebAssemblyModule) return Debug.Error("Could not initialize effector because the nessecary WASM file has not been specified.", [
-            `Effector type: Chorus`
-        ]);
-
-        this.sampleRate = parentialContext.sampleRate;
-
-        this.audioWorkletNode = new AudioWorkletNode(parentialContext, "ChorusProcessor", {
-            numberOfInputs: 1,
-            numberOfOutputs: 1,
-            outputChannelCount: [2],
-            parameterData: {
-                ...this.options,
-                sampleRate: this.sampleRate
-            },
-            processorOptions: {
-                module: compiledWebAssemblyModule
-            }
-        });
-
         this.parentialContext = parentialContext;
+        this.audioWorkletNode = CreateAudioWorkletNode<ChorusEffectOptions>(parentialContext, AudioWorkletProcessorNames.Chorus, this.ReturnOptionsAsObject());
     }
 
-    public SetBaseDelayMs(value: number) {
+    public ReturnOptionsAsObject(): ChorusEffectOptions {
+        return {
+            baseDelayMs: this.baseDelayMs,
+            depthMs: this.depthMs,
+            rateHz: this.rateHz,
+            mix: this.mix,
+            feedback: this.feedback,
+        }
+    }
 
+    public SetBaseDelayMs(value: number): boolean {
         this.baseDelayMs = value;
-        this.options.baseDelayMs = value;
-
-        this.audioWorkletNode?.port.postMessage({
-            type: "set-base-delay-ms",
-            value
-        });
+        return SendMessageToWorklet<ChorusMessageCommandId, number>(this.audioWorkletNode, ChorusMessageCommandId.SetBaseDelayMs, value);
     }
 
     public SetDepthMs(value: number) {
-
         this.depthMs = value;
-        this.options.depthMs = value;
-
-        this.audioWorkletNode?.port.postMessage({
-            type: "set-depth-ms",
-            value
-        });
+        return SendMessageToWorklet<ChorusMessageCommandId, number>(this.audioWorkletNode, ChorusMessageCommandId.SetDepthMs, value);
     }
 
     public SetRateHz(value: number) {
-
         this.rateHz = value;
-        this.options.rateHz = value;
-
-        this.audioWorkletNode?.port.postMessage({
-            type: "set-rate-hz",
-            value
-        });
+        return SendMessageToWorklet<ChorusMessageCommandId, number>(this.audioWorkletNode, ChorusMessageCommandId.SetRateHz, value);
     }
 
     public SetMix(value: number) {
-
         this.mix = value;
-        this.options.mix = value;
-
-        this.audioWorkletNode?.port.postMessage({
-            type: "set-mix",
-            value
-        });
+        return SendMessageToWorklet<ChorusMessageCommandId, number>(this.audioWorkletNode, ChorusMessageCommandId.SetMix, value);
     }
 
     public SetFeedback(value: number) {
-
         this.feedback = value;
-        this.options.feedback = value;
-
-        this.audioWorkletNode?.port.postMessage({
-            type: "set-mix",
-            value
-        });
+        return SendMessageToWorklet<ChorusMessageCommandId, number>(this.audioWorkletNode, ChorusMessageCommandId.SetFeedback, value);
     }
 }
