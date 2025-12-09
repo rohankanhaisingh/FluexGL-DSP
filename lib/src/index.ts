@@ -95,5 +95,9 @@ export type {
     LowPassFilterOptions,
     LowPassFilterMessageCommandId,
     ChorusMessageCommandId,
-    AudioWorkletProcessorNames
+    AudioWorkletProcessorNames,
+    SoftClipMessageCommandId,
+    SoftClipOptions,
+    HardClipMessageCommandId,
+    HardClipOptions
 } from "./typings";

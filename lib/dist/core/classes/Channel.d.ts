@@ -1,0 +1,42 @@
+import { Effector } from "./Effector";
+import { AudioClip } from "./AudioClip";
+import { Master } from "./Master";
+import { ChannelOptions } from "../../typings";
+export declare class Channel {
+    options: Partial<ChannelOptions>;
+    id: string;
+    effects: Effector[];
+    label: string | null;
+    parentialContext: AudioContext | null;
+    parentialMasterChannel: Master | null;
+    audioClips: AudioClip[];
+    gainNode: GainNode | null;
+    stereoPannerNode: StereoPannerNode | null;
+    analyserNode: AnalyserNode | null;
+    channelSplitterNode: ChannelSplitterNode | null;
+    analyserFloatArrayBuffer: Float32Array;
+    analyserByteArrayBuffer: Uint8Array;
+    audioClipsInputGainNode: GainNode | null;
+    analyserOptions: AnalyserOptions;
+    constructor(options?: Partial<ChannelOptions>);
+    private rebuildEffectChain;
+    InitializeChannelOnMasterAttachment(master: Master): void;
+    SetLabel(label: string): void;
+    ClearLabel(): void;
+    AttachAudioClip(clip: AudioClip): void;
+    DetachAudioClip(clip: AudioClip): void;
+    HasAudioClip(clip: AudioClip): boolean;
+    SetVolume(volume: number): void;
+    SetPanLevel(pan: number): void;
+    AddEffect(effect: Effector): void;
+    AttachEffect(effect: Effector): void;
+    RemoveEffect(effect: Effector): void;
+    DetachEffect(effect: Effector): void;
+    SetAnalyserFftSize(value: number): number | null;
+    GetWaveformFloatData(): Float32Array | null;
+    GetWaveformByteData(): Uint8Array | null;
+    SetAnalyserOptions(options: AnalyserOptions): Channel | null;
+    get volume(): number | null;
+    get panLevel(): number | null;
+}
+//# sourceMappingURL=Channel.d.ts.map

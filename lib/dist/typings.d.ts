@@ -1,38 +1,29 @@
-export type ChannelSpatialization = "mono" | "stereo" | "surround";
-
-export type AudioClipAnalyserType = "pre" | "post";
-export type AudioClipAnalyserProperty = "fftSize" | "minDecibels" | "maxDecibels" | "smoothingTimeConstant";
-
-export type AudioClipEvents  = {
+export declare type ChannelSpatialization = "mono" | "stereo" | "surround";
+export declare type AudioClipAnalyserType = "pre" | "post";
+export declare type AudioClipAnalyserProperty = "fftSize" | "minDecibels" | "maxDecibels" | "smoothingTimeConstant";
+export declare type AudioClipEvents = {
     [K in keyof AudioClipEventMap]: AudioClipEventMap[K][];
+};
+export declare enum LowPassFilterMessageCommandId {
+    SetCutoff = 0,
+    SetMinFrequency = 1
 }
-
-// ======== Audio worklet command id's ========
-
-export enum LowPassFilterMessageCommandId {
-    SetCutoff,
-    SetMinFrequency
+export declare enum ChorusMessageCommandId {
+    SetBaseDelayMs = 0,
+    SetDepthMs = 1,
+    SetRateHz = 2,
+    SetMix = 3,
+    SetFeedback = 4
 }
-
-export enum ChorusMessageCommandId {
-    SetBaseDelayMs,
-    SetDepthMs,
-    SetRateHz,
-    SetMix,
-    SetFeedback
+export declare enum SoftClipMessageCommandId {
+    SetDrive = 0,
+    SetGain = 1
 }
-
-export enum SoftClipMessageCommandId {
-    SetDrive,
-    SetGain
+export declare enum HardClipMessageCommandId {
+    SetDrive = 0,
+    SetGain = 1
 }
-
-export enum HardClipMessageCommandId {
-    SetDrive,
-    SetGain
-}
-
-export enum AudioWorkletProcessorNames {
+export declare enum AudioWorkletProcessorNames {
     Compressor = "CompressorProcessor",
     MultibandCompressor = "MultibandCompressorProcessor",
     AdvancedDelay = "AdvancedDelayProcessor",
@@ -50,14 +41,12 @@ export enum AudioWorkletProcessorNames {
     SoftClip = "SoftClipProcessor",
     HardClip = "HardClipProcessor"
 }
-
 export interface FluexGLAudioDebuggerOptions {
     breakOnError: boolean;
     showInfo: boolean;
     showErrors: boolean;
     showWarnings: boolean;
 }
-
 export interface FluexGLAudioOptions {
     maxMasterChannels: number;
     maxTotalChannels: number;
@@ -65,7 +54,6 @@ export interface FluexGLAudioOptions {
     spatialization: ChannelSpatialization;
     debugger: FluexGLAudioDebuggerOptions;
 }
-
 export interface FluexGLAudioDescriptor {
     name: string;
     author: string;
@@ -74,24 +62,20 @@ export interface FluexGLAudioDescriptor {
     repository: string;
     options: FluexGLAudioOptions;
 }
-
 export interface LoadAudioSourceOptions {
     allowForeignFileTypes: boolean;
 }
-
 export interface AudioSourceData {
     arrayBuffer: ArrayBuffer;
     audioBuffer: AudioBuffer;
     id: string;
     timestamp: number;
 }
-
 export interface ChannelOptions {
     label: string | null;
     maxAudioNodes: number;
     maxEffects: number;
 }
-
 export interface AudioClipOnProgressEvent {
     startTime: number;
     offset: number;
@@ -99,42 +83,34 @@ export interface AudioClipOnProgressEvent {
     contextTimestamp: number;
     formatted: string;
 }
-
 export interface AudioClipEventMap {
     "progress": (event: AudioClipOnProgressEvent) => void;
 }
-
 export interface DspPipelineInitializationOptions {
     pathToWasm: string;
     pathToWorklet: string;
 }
-
 export interface DspPipelineInitializationState {
     success: boolean;
     workletBlobUrl: string;
 }
-
-// ======== Effect options ========
-
 export interface ChorusEffectOptions {
     baseDelayMs: number;
     depthMs: number;
     rateHz: number;
     mix: number;
-    feedback: number;  
+    feedback: number;
 }
-
 export interface LowPassFilterOptions {
     cutoff: number;
     minFrequency: number;
 }
-
 export interface SoftClipOptions {
     drive: number;
     gain: number;
 }
-
 export interface HardClipOptions {
     drive: number;
     gain: number;
 }
+//# sourceMappingURL=typings.d.ts.map

@@ -1,0 +1,1 @@
+{"version":3,"file":"web-assembly.d.ts","sourceRoot":"","sources":["../../src/utilities/web-assembly.ts"],"names":[],"mappings":"AAAA,eAAO,IAAI,kBAAkB,EAAE,OAAe,CAAC;AAC/C,eAAO,IAAI,yBAAyB,EAAE,WAAW,CAAC,MAAM,GAAG,IAAW,CAAC;AAEvE,wBAAsB,qBAAqB,CAAC,IAAI,EAAE,MAAM,GAAG,OAAO,CAAC,WAAW,CAAC,MAAM,CAAC,CASrF"}

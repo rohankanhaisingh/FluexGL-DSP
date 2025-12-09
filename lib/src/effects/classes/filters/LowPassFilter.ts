@@ -12,7 +12,7 @@ export class LowPassFilter extends Effector {
     public cutoff: number = 4000;
     public minFrequency: number = 10;
 
-    constructor({ cutoff, minFrequency }: LowPassFilterOptions) {
+    constructor({ cutoff, minFrequency }: Partial<LowPassFilterOptions>) {
         super();
 
         this.cutoff = cutoff ?? this.cutoff;
@@ -44,6 +44,7 @@ export class LowPassFilter extends Effector {
     }
 
     public SetMinFrequency(minFrequency: number = 10): boolean {
+
 
         if (minFrequency < 10)
             minFrequency = 10;
