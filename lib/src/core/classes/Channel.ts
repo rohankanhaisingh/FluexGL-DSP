@@ -37,38 +37,38 @@ export class Channel {
     private rebuildEffectChain() {
         Debug.Log("Attempting to rebuild effect chain.");
 
-        if (!this.audioClipsInputGainNode || !this.gainNode) return Debug.Error("Could not rebuild effect chain, because one or more gain nodes on this channel are undefined.", [
-            `Channel id: ${this.id}.`,
-            `Current amount of effects: ${this.effects.length}.`
-        ]);
-
+        if (!this.audioClipsInputGainNode || !this.stereoPannerNode) {
+            return Debug.Error(
+                "Could not rebuild effect chain, because one or more nodes on this channel are undefined.",
+                [
+                    `Channel id: ${this.id}.`,
+                    `Current amount of effects: ${this.effects.length}.`
+                ]
+            );
+        }
         this.audioClipsInputGainNode.disconnect();
 
         for (const effect of this.effects) {
             effect.audioWorkletNode?.disconnect();
         }
 
-        const activeEffects = this.effects.filter(e => !!e.audioWorkletNode);
+        const activeEffects = this.effects.filter(function (e) {
+            return !!e.audioWorkletNode;
+        });
 
         if (activeEffects.length === 0) {
-
-            this.audioClipsInputGainNode.connect(this.gainNode);
+            this.audioClipsInputGainNode.connect(this.stereoPannerNode);
         } else {
-
-            const firstEffectGain = activeEffects[0].audioWorkletNode!;
-            this.audioClipsInputGainNode.connect(firstEffectGain);
+            this.audioClipsInputGainNode.connect(activeEffects[0].audioWorkletNode!);
 
             for (let i = 0; i < activeEffects.length - 1; i++) {
-
                 const current = activeEffects[i].audioWorkletNode!;
                 const next = activeEffects[i + 1].audioWorkletNode!;
-
                 current.connect(next);
             }
 
-            const lastEffectGain = activeEffects[activeEffects.length - 1].audioWorkletNode!;
-
-            lastEffectGain.connect(this.gainNode);
+            const lastEffectNode = activeEffects[activeEffects.length - 1].audioWorkletNode!;
+            lastEffectNode.connect(this.stereoPannerNode);
         }
 
         Debug.Success("Successfully rebuilt effect chain.", [
@@ -258,7 +258,7 @@ export class Channel {
 
     public SetAnalyserOptions(options: AnalyserOptions): Channel | null {
 
-        this.analyserOptions = {...options};
+        this.analyserOptions = { ...options };
 
         if (!this.analyserNode) return null;
 
