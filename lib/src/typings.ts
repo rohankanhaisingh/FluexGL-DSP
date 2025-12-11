@@ -11,7 +11,8 @@ export type AudioClipEvents  = {
 
 export enum LowPassFilterMessageCommandId {
     SetCutoff,
-    SetMinFrequency
+    SetMinFrequency,
+    SetQ
 }
 
 export enum ChorusMessageCommandId {
@@ -127,6 +128,7 @@ export interface ChorusEffectOptions {
 export interface LowPassFilterOptions {
     cutoff: number;
     minFrequency: number;
+    q: number;
 }
 
 export interface SoftClipOptions {
