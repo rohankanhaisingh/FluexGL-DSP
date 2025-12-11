@@ -24,9 +24,7 @@ export abstract class Effector {
     private handleIncomingMessages(event: MessageEvent) {
 
         const messageData = event.data as IncomingProcessorMessage;
-
-        console.log(messageData);
-
+        
         switch (messageData.type) {
             case "message":
                 return this.events["incoming-processor-message"].forEach(ev => ev(messageData));
