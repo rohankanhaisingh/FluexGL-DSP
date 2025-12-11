@@ -1,13 +1,15 @@
 export type ChannelSpatialization = "mono" | "stereo" | "surround";
-
 export type AudioClipAnalyserType = "pre" | "post";
 export type AudioClipAnalyserProperty = "fftSize" | "minDecibels" | "maxDecibels" | "smoothingTimeConstant";
+export type IncomingMessageType = "message" | "error" | "warning" | "wasm-instantiated";
 
-export type AudioClipEvents  = {
+export type AudioClipEvents = {
     [K in keyof AudioClipEventMap]: AudioClipEventMap[K][];
 }
 
-// ======== Audio worklet command id's ========
+export type EffectorEvents = {
+    [K in keyof EffectorEventMap]: EffectorEventMap[K][];
+}
 
 export enum LowPassFilterMessageCommandId {
     SetCutoff,
@@ -50,6 +52,12 @@ export enum AudioWorkletProcessorNames {
     Reverb = "ReverbProcessor",
     SoftClip = "SoftClipProcessor",
     HardClip = "HardClipProcessor"
+}
+
+export enum ProcessorIdentificationCodes {
+    UnknownProcessorId = "UNKNOWN_PROCESSOR_ID",
+    UnknownProcessorName = "UNKNOWN_PROCESSOR_NAME",
+    UnknownProcessorCreationDate = "UNKNOWN_PROCESSOR_CREATION_DATE"
 }
 
 export interface FluexGLAudioDebuggerOptions {
@@ -122,7 +130,7 @@ export interface ChorusEffectOptions {
     depthMs: number;
     rateHz: number;
     mix: number;
-    feedback: number;  
+    feedback: number;
 }
 
 export interface LowPassFilterOptions {
@@ -139,4 +147,27 @@ export interface SoftClipOptions {
 export interface HardClipOptions {
     drive: number;
     gain: number;
+}
+
+export interface EffectorEventMap {
+    "incoming-processor-message": (message: IncomingProcessorMessage) => void;
+    "incoming-processor-warning": (message: IncomingProcessorMessage) => void;
+    "incoming-processor-error": (message: IncomingProcessorMessage) => void;
+    "initialized-on-channel-attachment": (message: IncomingProcessorMessage) => void;
+    "processor-wasm-instantiated": (message: IncomingProcessorMessage) => void;
+}
+
+export interface ProcessorData {
+    id: string | ProcessorIdentificationCodes.UnknownProcessorId;
+    name: string | ProcessorIdentificationCodes.UnknownProcessorName;
+    createdAt: number | ProcessorIdentificationCodes.UnknownProcessorCreationDate;
+}
+
+export interface IncomingProcessorMessage {
+    id: string;
+    timestamp: number;
+    message: string;
+    type: IncomingMessageType;
+    processor: ProcessorData;
+    additionalData?: any;
 }

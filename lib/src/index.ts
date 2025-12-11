@@ -100,5 +100,11 @@ export type {
     SoftClipMessageCommandId,
     SoftClipOptions,
     HardClipMessageCommandId,
-    HardClipOptions
+    HardClipOptions,
+    EffectorEventMap,
+    IncomingMessageType,
+    IncomingProcessorMessage,
+    ProcessorData,
+    ProcessorIdentificationCodes,
+    EffectorEvents
 } from "./typings";

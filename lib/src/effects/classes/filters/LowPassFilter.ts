@@ -25,6 +25,7 @@ export class LowPassFilter extends Effector {
 
         this.parentialContext = parentialContext;
         this.audioWorkletNode = CreateAudioWorkletNode(parentialContext, AudioWorkletProcessorNames.LowPassFilter, this.ReturnOptionsAsObject());
+        this.registerMessageEventListener(this.audioWorkletNode as AudioWorkletNode);
     }
 
     public ReturnOptionsAsObject(): LowPassFilterOptions {
