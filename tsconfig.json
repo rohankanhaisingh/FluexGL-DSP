@@ -16,11 +16,6 @@
     "skipLibCheck": true,
     "types": [],
     "baseUrl": ".",
-    "paths": {
-      "@fluex-gl/test*": [
-        "lib/src/*"
-      ]
-    }
   },
   "include": [
     "lib/src/**/*.ts",

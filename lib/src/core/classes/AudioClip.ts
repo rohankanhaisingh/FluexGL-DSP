@@ -23,8 +23,8 @@ export class AudioClip {
     public gainNode: GainNode | null = null;
     public stereoPannerNode: StereoPannerNode | null = null;
 
-    public parentialAudioContext: AudioContext | null = null;
-    public parentialChannel: Channel | null = null;
+    public context: AudioContext | null = null;
+    public channel: Channel | null = null;
 
     public preAnalyser: AnalyserNode | null = null;
     public postAnalyser: AnalyserNode | null = null;
@@ -56,9 +56,9 @@ export class AudioClip {
 
     private createBufferSource(): AudioBufferSourceNode | null {
 
-        if (!this.parentialAudioContext) return null;
+        if (!this.context) return null;
 
-        const context = this.parentialAudioContext;
+        const context = this.context;
 
         const bufferSource = context.createBufferSource();
         bufferSource.buffer = this.data.audioBuffer;
@@ -80,13 +80,13 @@ export class AudioClip {
 
     private rebuildNodeChain() {
 
-        if (!this.parentialAudioContext || !this.gainNode || !this.stereoPannerNode || !this.parentialChannel || !this.parentialChannel.audioClipsInputGainNode) {
+        if (!this.context || !this.gainNode || !this.stereoPannerNode || !this.channel || !this.channel.input) {
 
             Debug.Error("rebuildNodeChain: missing context or core nodes (gain/panner).");
             return false;
         }
 
-        const destination = this.parentialChannel.audioClipsInputGainNode;
+        const destination = this.channel.input;
 
         this.safeDisconnect(this.gainNode);
         this.safeDisconnect(this.stereoPannerNode);
@@ -118,7 +118,7 @@ export class AudioClip {
 
     public InitializeAudioClipOnAttaching(channel: Channel): AudioClip | null {
 
-        if (!channel.parentialContext || !channel.audioClipsInputGainNode) {
+        if (!channel.context || !channel.input) {
 
             Debug.Error("Could not initialize audio clip on channel attachment, because channel it's master channel has not been defined.", [
                 `Call .AttachChannel([channel<"${channel.id}"> Channel]) on the master channel.`
@@ -126,11 +126,11 @@ export class AudioClip {
             return null;
         }
 
-        this.gainNode = new GainNode(channel.parentialContext);
-        this.stereoPannerNode = new StereoPannerNode(channel.parentialContext);
+        this.gainNode = new GainNode(channel.context);
+        this.stereoPannerNode = new StereoPannerNode(channel.context);
 
-        this.parentialAudioContext = channel.parentialContext;
-        this.parentialChannel = channel;
+        this.context = channel.context;
+        this.channel = channel;
         this.hasAttachedToChannel = true;
 
         return this;
@@ -138,14 +138,14 @@ export class AudioClip {
 
     public Play(timestamp?: number, offset?: number): AudioClip | null {
 
-        if (!this.hasAttachedToChannel || !this.parentialAudioContext || !this.parentialChannel) {
+        if (!this.hasAttachedToChannel || !this.context || !this.channel) {
             Debug.Error("Could not play the audio node because it is not attached to a channel", [
                 "Call 'AttachAudioClip([clip AudioClip])' on a channel, before playing this audio node."
             ]);
             return this;
         }
 
-        const context = this.parentialAudioContext;
+        const context = this.context;
         const self = this;
 
         if (this.audioBufferSourceNodes.length > this.maxAudioBufferSourceNodes - 1) return null;
@@ -210,7 +210,7 @@ export class AudioClip {
 
     public Seek(seconds: number): AudioClip | null {
 
-        if (!this.parentialAudioContext || !this.hasAttachedToChannel) {
+        if (!this.context || !this.hasAttachedToChannel) {
             Debug.Error("Could not seek because the clip is not attached to a channel.", [
                 `Clip ID: ${this.id}`
             ]);
@@ -233,7 +233,7 @@ export class AudioClip {
 
     public Stop(): AudioClip | null {
 
-        if (!this.hasAttachedToChannel || !this.parentialAudioContext) {
+        if (!this.hasAttachedToChannel || !this.context) {
 
             Debug.Error("Could not stop the audio node because it is not attached to a channel", [
                 "Call 'AttachAudioClip([node AudioNode])' on a channel, before stopping this audio node."
@@ -261,18 +261,18 @@ export class AudioClip {
     }
     public SetVolume(volume: number): AudioClip | void {
 
-        if (!this.gainNode || !this.parentialAudioContext) return Debug.Error("Something went wrong while setting the volume.", [
+        if (!this.gainNode || !this.context) return Debug.Error("Something went wrong while setting the volume.", [
             `Gain node on audio clip '${this.id}' is undefined.`
         ]);
 
-        this.gainNode.gain.setValueAtTime(volume, this.parentialAudioContext.currentTime);
+        this.gainNode.gain.setValueAtTime(volume, this.context.currentTime);
 
         return this;
     }
 
     public SetPanLevel(panLevel: number): AudioClip | void {
 
-        if (!this.stereoPannerNode || !this.parentialAudioContext) return Debug.Error("Something went wrong while setting the pan level", [
+        if (!this.stereoPannerNode || !this.context) return Debug.Error("Something went wrong while setting the pan level", [
             `Stereo panner node on audio clip '${this.id}' is undefined`
         ]);
 
@@ -280,7 +280,7 @@ export class AudioClip {
             "Provide this method with a value between -1 and 1"
         ]);
 
-        this.stereoPannerNode.pan.setValueAtTime(panLevel, this.parentialAudioContext.currentTime);
+        this.stereoPannerNode.pan.setValueAtTime(panLevel, this.context.currentTime);
         return this;
     }
 
@@ -306,9 +306,9 @@ export class AudioClip {
 
     public DisconnectAllAudioBufferSourceNodes(): boolean {
 
-        if (!this.parentialAudioContext) return false;
+        if (!this.context) return false;
 
-        const contextCurrentTime: number = this.parentialAudioContext?.currentTime;
+        const contextCurrentTime: number = this.context?.currentTime;
 
         this.audioBufferSourceNodes.forEach(function (node: AudioBufferSourceNode) {
             node.stop(contextCurrentTime);
@@ -369,13 +369,13 @@ export class AudioClip {
 
     public EnablePreAnalyser(): boolean {
 
-        if (!this.parentialAudioContext || !this.parentialChannel || !this.hasAttachedToChannel) {
+        if (!this.context || !this.channel || !this.hasAttachedToChannel) {
             Debug.Error("EnablePreAnalyser: clip niet aan channel gekoppeld.");
             return false;
         }
 
         if (!this.preAnalyser)
-            this.preAnalyser = new AnalyserNode(this.parentialAudioContext, this.preAnalyserOptions);
+            this.preAnalyser = new AnalyserNode(this.context, this.preAnalyserOptions);
 
         this.preAnalyserFloatArrayBuffer = new Float32Array(this.preAnalyser.fftSize);
         this.preAnalyserByteArrayBuffer = new Uint8Array(this.preAnalyser.fftSize);
@@ -392,14 +392,14 @@ export class AudioClip {
 
     public EnablePostAnalyser() {
 
-        if (!this.parentialAudioContext || !this.parentialChannel || !this.hasAttachedToChannel) {
+        if (!this.context || !this.channel || !this.hasAttachedToChannel) {
 
             Debug.Error("EnablePostAnalyser: clip niet aan channel gekoppeld.");
             return false;
         }
 
         if (!this.postAnalyser)
-            this.postAnalyser = new AnalyserNode(this.parentialAudioContext, this.postAnalyserOptions);
+            this.postAnalyser = new AnalyserNode(this.context, this.postAnalyserOptions);
 
         this.postAnalyserFloatArrayBuffer = new Float32Array(this.postAnalyser.fftSize);
         this.postAnalyserByteArrayBuffer = new Uint8Array(this.postAnalyser.fftSize);
@@ -502,9 +502,9 @@ export class AudioClip {
     // Public getters and setters
 
     public get currentPlaybackTime(): number {
-        return (!this.isPlaying || !this.parentialAudioContext)
+        return (!this.isPlaying || !this.context)
             ? 0
-            : this.offsetAtStart + (this.parentialAudioContext.currentTime - this.startTime);
+            : this.offsetAtStart + (this.context.currentTime - this.startTime);
     }
 
     public get duration(): number {

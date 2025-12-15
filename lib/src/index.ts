@@ -54,7 +54,7 @@ export {
     Effector,
     Master,
     AudioClip,
-    DspPipeline
+    DspPipeline,
 } from "./core/exports";
 
 export {

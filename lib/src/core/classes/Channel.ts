@@ -2,6 +2,7 @@ import { v4 } from "uuid";
 
 import { Effector } from "./Effector";
 import { AudioClip } from "./AudioClip";
+import { AudioClipPlayer } from "./AudioClipPlayer";
 import { Master } from "./Master";
 
 import { ChannelOptions } from "../../typings";
@@ -10,280 +11,79 @@ import { Debug } from "../../utilities/debugger";
 export class Channel {
 
     public id: string = v4();
+    public label: string = "Channel";
+
+    public linkedChannels: Channel[] = [];
     public effects: Effector[] = [];
-    public label: string | null;
 
-    public parentialContext: AudioContext | null = null;
-    public parentialMasterChannel: Master | null = null;
+    declare public audioClipPlayer: AudioClipPlayer;
 
-    public audioClips: AudioClip[] = [];
+    declare public input: AudioNode | null;
+    declare public stereoPannerNode: StereoPannerNode | null;
+    declare public analyserNode: AnalyserNode | null;
+    declare public gainNode: GainNode | null;
+    declare public output: AudioNode | null;
 
-    public gainNode: GainNode | null = null;
-    public stereoPannerNode: StereoPannerNode | null = null;
-    public analyserNode: AnalyserNode | null = null;
-    public channelSplitterNode: ChannelSplitterNode | null = null;
+    declare public context: AudioContext | null;
+    declare public master: Master | null;
 
-    public analyserFloatArrayBuffer = new Float32Array();
-    public analyserByteArrayBuffer = new Uint8Array();
+    constructor(master?: Master) {
 
-    public audioClipsInputGainNode: GainNode | null = null;
+        if (!master) return;
 
-    public analyserOptions: AnalyserOptions = { fftSize: 32 };
-
-    constructor(public options: Partial<ChannelOptions> = { maxAudioNodes: 8, maxEffects: 8 }) {
-        this.label = options.label ?? null;
+        this.master = master;
+        this.context = master.context;
     }
 
-    private rebuildEffectChain() {
-        Debug.Log("Attempting to rebuild effect chain.");
+    private initializeChannelFromMaster(master: Master) {
 
-        if (!this.audioClipsInputGainNode || !this.stereoPannerNode) {
-            return Debug.Error(
-                "Could not rebuild effect chain, because one or more nodes on this channel are undefined.",
-                [
-                    `Channel id: ${this.id}.`,
-                    `Current amount of effects: ${this.effects.length}.`
-                ]
-            );
+    }
+
+    private initializeChannelFromChannel(channel: Channel) {
+
+    }
+
+    private disconnectAudioNodes(gc?: boolean) {
+
+        this.input?.disconnect();
+        this.stereoPannerNode?.disconnect();
+        this.analyserNode?.disconnect();
+        this.gainNode?.disconnect();
+        this.output?.disconnect();
+
+        if (gc) {
+            this.input = null;
+            this.stereoPannerNode = null;
+            this.analyserNode = null;
+            this.gainNode = null;
+            this.output = null;
         }
-        this.audioClipsInputGainNode.disconnect();
-
-        for (const effect of this.effects) {
-            effect.audioWorkletNode?.disconnect();
-        }
-
-        const activeEffects = this.effects.filter(function (e) {
-            return !!e.audioWorkletNode;
-        });
-
-        if (activeEffects.length === 0) {
-            this.audioClipsInputGainNode.connect(this.stereoPannerNode);
-        } else {
-            this.audioClipsInputGainNode.connect(activeEffects[0].audioWorkletNode!);
-
-            for (let i = 0; i < activeEffects.length - 1; i++) {
-                const current = activeEffects[i].audioWorkletNode!;
-                const next = activeEffects[i + 1].audioWorkletNode!;
-                current.connect(next);
-            }
-
-            const lastEffectNode = activeEffects[activeEffects.length - 1].audioWorkletNode!;
-            lastEffectNode.connect(this.stereoPannerNode);
-        }
-
-        Debug.Success("Successfully rebuilt effect chain.", [
-            `Channel id: ${this.id}.`,
-            `Current amount of effects: ${this.effects.length}`
-        ]);
     }
 
-    public InitializeChannelOnMasterAttachment(master: Master) {
+    public Initialize(source: Master | Channel) {
 
-        this.parentialMasterChannel = master;
-        this.parentialContext = master.context;
-
-        this.gainNode = new GainNode(this.parentialContext);
-        this.stereoPannerNode = new StereoPannerNode(this.parentialContext);
-        this.analyserNode = new AnalyserNode(this.parentialContext, this.analyserOptions);
-
-        this.analyserFloatArrayBuffer = new Float32Array(this.analyserNode.fftSize);
-        this.analyserByteArrayBuffer = new Uint8Array(this.analyserNode.fftSize);
-
-        this.audioClipsInputGainNode = new GainNode(this.parentialContext);
-
-        this.audioClipsInputGainNode.connect(this.stereoPannerNode);
-        this.stereoPannerNode.connect(this.gainNode);
-        this.gainNode.connect(this.analyserNode);
-        this.analyserNode.connect(this.parentialMasterChannel.gainNode);
-    }
-
-    public SetLabel(label: string): void {
-
-        this.options.label = label;
-        this.label = label;
-    }
-
-    public ClearLabel(): void {
-
-        this.options.label = "";
-        this.label = null;
-    }
-
-    public AttachAudioClip(clip: AudioClip) {
-
-        if (this.audioClips.includes(clip)) return Debug.Error("Could not attach audio clip because it is already part of this channel", [
-            "Call .DetachAudioClip([clip AudioClip]) before attaching audio clip."
+        if (!source.context) return Debug.Error("Could not initialize channel, because the source's AudioContext is undefined.", [
+            "Tried initializing from source (Master or a linked channel): " + source.id,
         ]);
 
-        clip.InitializeAudioClipOnAttaching(this);
-        this.audioClips.push(clip);
+        this.disconnectAudioNodes();
     }
 
-    public DetachAudioClip(clip: AudioClip) {
+    public Link(channel: Channel) {
 
-        if (!this.audioClips.includes(clip)) return Debug.Error("Could not detach audio clip, because it is not part of this channel.", [
-            "Call .AttachAudioClip([clip AudioClip]) before deattaching audio clip."
+        if (this.linkedChannels.includes(channel)) return Debug.Error("Could not link channels, because the given channel is already linked with this one.", [
+            `This channel id: ${this.id}`,
+            `Target channel id: ${this.id}`
         ]);
 
-        const self: Channel = this;
-
-        clip.parentialAudioContext = null;
-        clip.parentialChannel = null;
-        clip.hasAttachedToChannel = false;
-
-        clip.stereoPannerNode?.disconnect();
-        clip.gainNode?.disconnect();
-
-        clip.DisconnectAllAudioBufferSourceNodes();
-
-        this.audioClips.forEach(function (_clip: AudioClip, index: number) {
-            if (clip.id === _clip.id)
-                return self.audioClips.splice(index, 1);
-        });
+        
     }
 
-    public HasAudioClip(clip: AudioClip): boolean {
+    public Unlink(channel: Channel) {
 
-        for (let _clip of this.audioClips) {
-            if (_clip.id === clip.id) return true;
-        }
-
-        return false;
     }
 
-    public SetVolume(volume: number): void {
+    public UnlinkFromAllChannels() {
 
-        if (!this.gainNode) return Debug.Error("Could not set channel volume because the channel is not attached to a master channel.", [
-            "Attach the channel to a master channel before setting the volume."
-        ]);
-
-        this.gainNode.gain.setValueAtTime(volume, this.parentialContext!.currentTime);
-    }
-
-    public SetPanLevel(pan: number): void {
-
-        if (!this.stereoPannerNode) return Debug.Error("Could not set channel pan level because the channel is not attached to a master channel.", [
-            "Attach the channel to a master channel before setting the pan level."
-        ]);
-
-        this.stereoPannerNode.pan.setValueAtTime(pan, this.parentialContext!.currentTime);
-    }
-
-    public AddEffect(effect: Effector): void {
-
-        if (!this.parentialContext) return Debug.Error("Could not add effect on channel, because the parential context is undefined.", [
-            `Channel ID: ${this.id}`,
-            `Effect ID: ${effect.id}`,
-            `Effect name: ${effect.constructor.name}`
-        ])
-
-        if (this.effects.includes(effect)) return Debug.Error("Could not add effect because it is already part of this channel", [
-            "Call .RemoveEffect([effect Effector]) before adding effect."
-        ]);
-
-        effect.InitializeOnAttachment(this.parentialContext);
-
-        this.effects.push(effect);
-        this.rebuildEffectChain();
-    }
-
-    public AttachEffect(effect: Effector): void {
-        return this.AddEffect(effect);
-    }
-
-    public RemoveEffect(effect: Effector): void {
-
-        if (!this.effects.includes(effect)) return Debug.Error("Could not remove effect, because it is not part of this channel.", [
-            "Call .AddEffect([effect Effector]) before removing effect."
-        ]);
-
-        const self: Channel = this;
-
-        this.effects.forEach(function (_effect: Effector, index: number) {
-            if (effect.id === _effect.id)
-                return self.effects.splice(index, 1);
-        });
-
-        this.rebuildEffectChain();
-    }
-
-    public DetachEffect(effect: Effector): void {
-        return this.RemoveEffect(effect);
-    }
-
-    public SetAnalyserFftSize(value: number): number | null {
-
-        if (!this.analyserNode) {
-            Debug.Error("Could not set FFT size on analyser because the analyser has not been defined.");
-            return null;
-        }
-
-        this.analyserNode.fftSize = value;
-
-        this.analyserFloatArrayBuffer = new Float32Array(this.analyserNode.fftSize);
-        this.analyserByteArrayBuffer = new Uint8Array(this.analyserNode.fftSize);
-
-        return this.analyserNode.fftSize;
-    }
-
-    public GetWaveformFloatData(): Float32Array | null {
-
-        if (!this.analyserNode) {
-            Debug.Error("Could not get waveform float data, because the analyser has not been defined.");
-            return null;
-        }
-
-        if (this.analyserFloatArrayBuffer.length !== this.analyserNode.fftSize) {
-            this.analyserFloatArrayBuffer = new Float32Array(this.analyserNode.fftSize);
-        }
-
-        this.analyserNode.getFloatTimeDomainData(this.analyserFloatArrayBuffer);
-        return this.analyserFloatArrayBuffer;
-    }
-
-    public GetWaveformByteData(): Uint8Array | null {
-
-        if (!this.analyserNode) {
-            Debug.Error("Could not get waveform byte data, because the analyser has not been defined.");
-            return null;
-        }
-
-        if (this.analyserByteArrayBuffer.length !== this.analyserNode.fftSize) {
-            this.analyserByteArrayBuffer = new Uint8Array(this.analyserNode.fftSize);
-        }
-
-        this.analyserNode.getByteTimeDomainData(this.analyserByteArrayBuffer);
-        return this.analyserByteArrayBuffer;
-    }
-
-    public SetAnalyserOptions(options: AnalyserOptions): Channel | null {
-
-        this.analyserOptions = { ...options };
-
-        if (!this.analyserNode) return null;
-
-        this.analyserNode.minDecibels = options.minDecibels ?? this.analyserNode.minDecibels;
-        this.analyserNode.maxDecibels = options.maxDecibels ?? this.analyserNode.maxDecibels;
-        this.analyserNode.fftSize = options.fftSize ?? 32;
-        this.analyserNode.smoothingTimeConstant = options.smoothingTimeConstant ?? this.analyserNode.smoothingTimeConstant;
-
-        this.analyserByteArrayBuffer = new Uint8Array(this.analyserNode.fftSize);
-        this.analyserFloatArrayBuffer = new Float32Array(this.analyserNode.fftSize);
-
-        return this;
-    }
-
-    // Public getters and setters
-
-    public get volume(): number | null {
-
-        if (!this.gainNode) return null;
-        return this.gainNode.gain.value;
-    }
-
-    public get panLevel(): number | null {
-
-        if (!this.stereoPannerNode) return null;
-        return this.stereoPannerNode.pan.value;
     }
 }

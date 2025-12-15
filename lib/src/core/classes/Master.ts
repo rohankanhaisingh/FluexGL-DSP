@@ -3,6 +3,7 @@ import { v4 } from "uuid";
 import { Channel } from "./Channel";
 
 import { Debug } from "../../utilities/debugger";
+import { AudioClipPlayer } from "./AudioClipPlayer";
 
 export class Master {
 
@@ -25,7 +26,7 @@ export class Master {
             "Call .DetachChannel([channel Channel]) before attaching the channel."
         ]);
 
-        channel.InitializeChannelOnMasterAttachment(this);
+        channel.Initialize(this);
 
         this.channels.push(channel);
         return;
