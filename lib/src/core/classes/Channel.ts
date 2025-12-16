@@ -3,6 +3,7 @@ import { Debug } from "../../utilities/debugger";
 import { AudioClipPlayer } from "./AudioClipPlayer";
 import { AudioClip } from "./AudioClip";
 import { Master } from "./Master";
+import { Effector } from "./Effector";
 
 export class Channel {
 
@@ -15,6 +16,7 @@ export class Channel {
     public gainNode: GainNode | null = null;
     public output: AudioNode | null = null;
 
+    public effects: Effector[] = [];
     public context: AudioContext | null = null;
 
     private sends: Channel[] = [];
