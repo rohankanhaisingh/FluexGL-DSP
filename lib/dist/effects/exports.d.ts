@@ -1,4 +1,5 @@
 export { Chorus } from "./classes/Chorus";
+export { Analyser } from "./classes/Analyser";
 export { Distortion } from "./classes/Distortion";
 export { Equalizer } from "./classes/Equalizer";
 export { Limiter } from "./classes/Limiter";

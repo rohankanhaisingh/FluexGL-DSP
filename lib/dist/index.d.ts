@@ -4,7 +4,7 @@
  */
 import { FluexGLAudioDescriptor } from "./typings";
 export declare const FluexGLAudio: FluexGLAudioDescriptor;
-export { Chorus, Distortion, Equalizer, Limiter, Saturation, StereoPanner, Compressor, MultibandCompressor, AdvancedDelay, MonoDelay, PingPongDelay, StereoDelay, ChamberReverb, ConvolverReverb, GenericReverb, HallReverb, RoomReverb, SoftClip, LowPassFilter, HardClip } from "./effects/exports";
+export { Chorus, Analyser, Distortion, Equalizer, Limiter, Saturation, StereoPanner, Compressor, MultibandCompressor, AdvancedDelay, MonoDelay, PingPongDelay, StereoDelay, ChamberReverb, ConvolverReverb, GenericReverb, HallReverb, RoomReverb, SoftClip, LowPassFilter, HardClip } from "./effects/exports";
 export { AudioDevice, Channel, Effector, Master, AudioClip, DspPipeline, AudioClipPlayer } from "./core/exports";
 export { InitializeDspPipeline, ResolveAudioOutputDevices, ResolveAudioInputDevices, ResolveDefaultAudioInputDevice, ResolveDefaultAudioOutputDevice, LoadAudioSource, LoadAudioSourceFromBlob, LoadWorkletOnAudioDevice, SendMessageToWorklet } from "./utilities/helpers";
 export { SUPPORTED_FILE_TYPES } from "./utilities/constants";

@@ -23,10 +23,9 @@ export class Chorus extends Effector {
         this.feedback = feedback ?? this.feedback;
     }
 
-    public async InitializeOnAttachment(parentialContext: AudioContext): Promise<void> {
-
-        this.parentialContext = parentialContext;
-        this.audioWorkletNode = CreateAudioWorkletNode<ChorusEffectOptions>(parentialContext, AudioWorkletProcessorNames.Chorus, this.ReturnOptionsAsObject());
+    public async InitializeOnAttachment(context: AudioContext): Promise<void> {
+        this.context = context;
+        this.audioWorkletNode = CreateAudioWorkletNode<ChorusEffectOptions>(context, AudioWorkletProcessorNames.Chorus, this.ReturnOptionsAsObject());
     }
 
     public ReturnOptionsAsObject(): ChorusEffectOptions {

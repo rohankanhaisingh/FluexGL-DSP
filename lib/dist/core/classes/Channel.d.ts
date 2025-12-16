@@ -14,6 +14,11 @@ export declare class Channel {
     private sends;
     private audioClipPlayer;
     constructor(context: AudioContext);
+    private rebuildEffectChain;
+    AddEffect(effect: Effector): void;
+    AttachEffect(effect: Effector): void;
+    RemoveEffect(effect: Effector): void;
+    DetachEffect(effect: Effector): void;
     private disconnectAudioNodes;
     private isInitialized;
     private isReachable;

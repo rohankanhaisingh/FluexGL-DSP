@@ -21,10 +21,10 @@ export class LowPassFilter extends Effector {
         this.q = q ?? this.q;
     }
 
-    public async InitializeOnAttachment(parentialContext: AudioContext): Promise<void> {
+    public async InitializeOnAttachment(context: AudioContext): Promise<void> {
 
-        this.parentialContext = parentialContext;
-        this.audioWorkletNode = CreateAudioWorkletNode(parentialContext, AudioWorkletProcessorNames.LowPassFilter, this.ReturnOptionsAsObject());
+        this.context = context;
+        this.audioWorkletNode = CreateAudioWorkletNode(context, AudioWorkletProcessorNames.LowPassFilter, this.ReturnOptionsAsObject());
         this.registerMessageEventListener(this.audioWorkletNode as AudioWorkletNode);
     }
 
@@ -38,10 +38,10 @@ export class LowPassFilter extends Effector {
 
     public SetCutoff(cutoff: number = 1000): boolean {
 
-        if (!this.parentialContext) return false;
+        if (!this.context) return false;
 
-        if (cutoff >= this.parentialContext.sampleRate)
-            cutoff = this.parentialContext.sampleRate;
+        if (cutoff >= this.context.sampleRate)
+            cutoff = this.context.sampleRate;
 
         this.cutoff = cutoff;
         return SendMessageToWorklet<LowPassFilterMessageCommandId, number>(this.audioWorkletNode, LowPassFilterMessageCommandId.SetCutoff, cutoff);

@@ -17,9 +17,9 @@ export class HardClip extends Effector {
         this.gain = gain ?? this.gain;
     }
 
-    public async InitializeOnAttachment(parentialContext: AudioContext): Promise<void> {
-        this.parentialContext = parentialContext;
-        this.audioWorkletNode = CreateAudioWorkletNode<HardClipOptions>(parentialContext, AudioWorkletProcessorNames.HardClip, this.ReturnOptionsAsObject());
+    public async InitializeOnAttachment(context: AudioContext): Promise<void> {
+        this.context = context;
+        this.audioWorkletNode = CreateAudioWorkletNode<HardClipOptions>(context, AudioWorkletProcessorNames.HardClip, this.ReturnOptionsAsObject());
     }
 
     public ReturnOptionsAsObject(): HardClipOptions {

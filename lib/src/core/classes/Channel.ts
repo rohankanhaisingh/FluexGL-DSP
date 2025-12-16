@@ -43,6 +43,92 @@ export class Channel {
         this.audioClipPlayer.Send(this);
     }
 
+    private rebuildEffectChain(): void {
+
+        if (!this.input || !this.stereoPannerNode) {
+            Debug.Error("Could not rebuild effect chain because one or more required audio nodes are undefined.", [
+                `Channel id: ${this.id}.`,
+                `Input defined: ${!!this.input}.`,
+                `StereoPannerNode defined: ${!!this.stereoPannerNode}.`
+            ]);
+            return;
+        }
+
+        this.input.disconnect();
+
+        for (const effect of this.effects) {
+            effect.audioWorkletNode?.disconnect();
+        }
+
+        const activeEffects = this.effects.filter(function (e: Effector): boolean {
+            return !!e.audioWorkletNode;
+        });
+
+        if (activeEffects.length === 0) {
+            this.input.connect(this.stereoPannerNode);
+            return;
+        }
+
+        this.input.connect(activeEffects[0].audioWorkletNode as AudioNode);
+
+        for (let i: number = 0; i < activeEffects.length - 1; i++) {
+            const current = activeEffects[i].audioWorkletNode as AudioNode;
+            const next = activeEffects[i + 1].audioWorkletNode as AudioNode;
+            current.connect(next);
+        }
+
+        (activeEffects[activeEffects.length - 1].audioWorkletNode as AudioNode).connect(this.stereoPannerNode);
+    }
+
+    public AddEffect(effect: Effector): void {
+
+        if (!this.context) {
+            Debug.Error("Could not add effect because this channel has no AudioContext.");
+            return;
+        }
+
+        if (this.effects.includes(effect)) {
+            Debug.Error("Could not add effect because it is already part of this channel", [
+                "Call .RemoveEffect([effect Effector]) before adding effect."
+            ]);
+            return;
+        }
+
+        effect.InitializeOnAttachment(this.context);
+
+        this.effects.push(effect);
+        this.rebuildEffectChain();
+    }
+
+    public AttachEffect(effect: Effector): void {
+        return this.AddEffect(effect);
+    }
+
+    public RemoveEffect(effect: Effector): void {
+
+        if (!this.effects.includes(effect)) {
+            Debug.Error("Could not remove effect, because it is not part of this channel.", [
+                "Call .AddEffect([effect Effector]) before removing effect."
+            ]);
+            return;
+        }
+
+        const self: Channel = this;
+
+        this.effects.forEach(function (_effect: Effector, index: number): void {
+            if (effect.id === _effect.id)
+                self.effects.splice(index, 1);
+        });
+
+        effect.audioWorkletNode?.disconnect();
+
+        this.rebuildEffectChain();
+    }
+
+    public DetachEffect(effect: Effector): void {
+        return this.RemoveEffect(effect);
+    }
+
     private disconnectAudioNodes(gc?: boolean) {
 
         this.input?.disconnect();
@@ -50,6 +136,10 @@ export class Channel {
         this.analyserNode?.disconnect();
         this.gainNode?.disconnect();
         this.output?.disconnect();
+
+        for (const effect of this.effects) {
+            effect.audioWorkletNode?.disconnect();
+        }
 
         if (gc) {
             this.input = null;
@@ -90,7 +180,8 @@ export class Channel {
 
     public Send(channel: Channel | Master) {
 
-        if (channel instanceof Master) return (channel as Master).AttachChannel(this);
+        if (channel instanceof Master) 
+            return (channel as Master).AttachChannel(this);
 
         if (channel.id === this.id) return Debug.Error("Could not link channel to itself.", [
             `This channel id: ${this.id}`
@@ -123,7 +214,7 @@ export class Channel {
 
     public Unsend(channel: Channel | Master) {
 
-        if(channel instanceof Master) 
+        if (channel instanceof Master)
             return (channel as Master).DetachChannel(this);
 
         const idx: number = this.sends.indexOf(channel);

@@ -4,7 +4,7 @@ export declare abstract class Effector {
     label: string | null;
     name: string;
     audioWorkletNode: AudioWorkletNode | null;
-    parentialContext: AudioContext | null;
+    context: AudioContext | null;
     private hasRegisteredMessageEventListener;
     private events;
     private handleIncomingMessages;
@@ -13,6 +13,6 @@ export declare abstract class Effector {
     Once<K extends keyof EffectorEventMap>(event: K, cb: EffectorEventMap[K]): () => void;
     RemoveEventListener<K extends keyof EffectorEventMap>(event: K, cb: EffectorEventMap[K]): Effector;
     ClearEventListeners(event?: keyof EffectorEventMap): Effector;
-    abstract InitializeOnAttachment(parentialContext: AudioContext): Promise<void>;
+    abstract InitializeOnAttachment(context: AudioContext): Promise<void>;
 }
 //# sourceMappingURL=Effector.d.ts.map

@@ -17,9 +17,9 @@ export class SoftClip extends Effector {
         this.gain = gain ?? this.gain;
     }
 
-    public async InitializeOnAttachment(parentialContext: AudioContext): Promise<void> {
-        this.parentialContext = parentialContext;
-        this.audioWorkletNode = CreateAudioWorkletNode<SoftClipOptions>(parentialContext, AudioWorkletProcessorNames.SoftClip, this.ReturnOptionsAsObject());
+    public async InitializeOnAttachment(context: AudioContext): Promise<void> {
+        this.context = context;
+        this.audioWorkletNode = CreateAudioWorkletNode<SoftClipOptions>(context, AudioWorkletProcessorNames.SoftClip, this.ReturnOptionsAsObject());
     }
 
     public ReturnOptionsAsObject(): SoftClipOptions {

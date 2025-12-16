@@ -27,6 +27,7 @@ export const FluexGLAudio: FluexGLAudioDescriptor = {
 
 export {
     Chorus,
+    Analyser,
     Distortion,
     Equalizer,
     Limiter,

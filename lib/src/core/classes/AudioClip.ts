@@ -1,7 +1,7 @@
 import { v4 } from "uuid";
 import { format } from "date-fns";
 
-import { AudioClipAnalyserProperty, AudioClipAnalyserType, AudioClipEventMap, AudioClipEvents, AudioSourceData } from "../../typings";
+import { AudioClipEventMap, AudioClipEvents, AudioSourceData } from "../../typings";
 import { Debug } from "../../utilities/debugger";
 import { Channel } from "./Channel";
 import { AudioClipPlayer } from "./AudioClipPlayer";
