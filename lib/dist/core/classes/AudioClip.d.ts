@@ -1,6 +1,7 @@
 import { AudioClipEventMap, AudioSourceData } from "../../typings";
 import { Channel } from "./Channel";
 import { AudioClipPlayer } from "./AudioClipPlayer";
+import { Master } from "./Master";
 export declare class AudioClip {
     data: AudioSourceData;
     id: string;
@@ -37,7 +38,7 @@ export declare class AudioClip {
     RemoveEventListener<K extends keyof AudioClipEventMap>(event: K, cb: AudioClipEventMap[K]): AudioClip;
     ClearEventListeners(event?: keyof AudioClipEventMap): AudioClip;
     GetChannelData(channel?: number): Float32Array;
-    Send(channel: Channel): void;
+    Send(channel: Channel | Master): void;
     get currentPlaybackTime(): number;
     get duration(): number;
     get volume(): number;

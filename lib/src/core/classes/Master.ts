@@ -3,6 +3,8 @@ import { v4 } from "uuid";
 import { Channel } from "./Channel";
 import { Debug } from "../../utilities/debugger";
 import { Effector } from "./Effector";
+import { AudioClipPlayer } from "./AudioClipPlayer";
+import { AudioClip } from "./AudioClip";
 
 export class Master {
 
@@ -11,10 +13,11 @@ export class Master {
     public channels: Channel[] = [];
     public effects: Effector[] = [];
 
-    public inputNode: GainNode | null = null;
+    public input: GainNode | null = null;
     public gainNode: GainNode | null = null;
     public analyserNode: AnalyserNode | null = null;
     public context: AudioContext | null = null;
+    public audioClipPlayer: AudioClipPlayer | null = null;
 
     constructor(context: AudioContext) {
 
@@ -22,18 +25,20 @@ export class Master {
 
         this.disconnectAudioNodes();
 
-        this.inputNode = new GainNode(context);
+        this.audioClipPlayer = new AudioClipPlayer(context);
+
+        this.input = new GainNode(context);
         this.gainNode = new GainNode(context);
         this.analyserNode = new AnalyserNode(context);
 
-        this.inputNode.connect(this.gainNode);
+        this.input.connect(this.gainNode);
         this.gainNode.connect(this.analyserNode);
         this.analyserNode.connect(this.context.destination);
     }
 
     private disconnectAudioNodes(): void {
 
-        if (this.inputNode) this.inputNode.disconnect();
+        if (this.input) this.input.disconnect();
         if (this.gainNode) this.gainNode.disconnect();
         if (this.analyserNode) this.analyserNode.disconnect();
 
@@ -46,11 +51,11 @@ export class Master {
     private rebuildEffectChain(): void {
 
         if (!this.context) return;
-        if (!this.inputNode || !this.gainNode || !this.analyserNode) return;
+        if (!this.input || !this.gainNode || !this.analyserNode) return;
 
         this.disconnectAudioNodes();
 
-        let currentNode: AudioNode = this.inputNode;
+        let currentNode: AudioNode = this.input;
 
         this.effects.forEach(function (effect: Effector) {
 
@@ -103,8 +108,8 @@ export class Master {
 
         this.channels.push(channel);
 
-        if (channel.output && this.inputNode)
-            channel.output.connect(this.inputNode);
+        if (channel.output && this.input)
+            channel.output.connect(this.input);
 
         return;
     }
@@ -115,8 +120,8 @@ export class Master {
             "Call .AttachChannel([channel Channel]) before detaching the channel."
         ]);
 
-        if (channel.output && this.inputNode)
-            channel.output.disconnect(this.inputNode);
+        if (channel.output && this.input)
+            channel.output.disconnect(this.input);
 
         const self = this;
 
@@ -125,5 +130,16 @@ export class Master {
 
             self.channels.splice(index, 1);
         });
+    }
+
+    public HasAudioClipPlayer(): boolean {
+        return !!this.audioClipPlayer;
+    }
+
+    public AttachAudioClip(audioClip: AudioClip) {
+
+        if (!this.audioClipPlayer) return Debug.Error("Cannot not link AudioClip to this channel because this channel's AudioClipPlayer is undefined.");
+
+        this.audioClipPlayer.AttachAudioClip(audioClip);
     }
 }

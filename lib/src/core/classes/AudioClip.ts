@@ -5,6 +5,7 @@ import { AudioClipEventMap, AudioClipEvents, AudioSourceData } from "../../typin
 import { Debug } from "../../utilities/debugger";
 import { Channel } from "./Channel";
 import { AudioClipPlayer } from "./AudioClipPlayer";
+import { Master } from "./Master";
 
 type ProgressPayload = Parameters<AudioClipEventMap["progress"]>[0];
 
@@ -316,7 +317,7 @@ export class AudioClip {
         return this.data.audioBuffer.getChannelData(channel);
     }
 
-    public Send(channel: Channel) {
+    public Send(channel: Channel | Master) {
 
         if(!channel.HasAudioClipPlayer()) return Debug.Error("Could not send AudioClip signal to channel, because the channel's AudioClipPlayer is undefined.", [
             "Make sure to initialize the Channel.",

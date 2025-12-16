@@ -3,6 +3,7 @@ import { v4 } from "uuid";
 import { AudioClip } from "./AudioClip";
 import { Debug } from "../../utilities/debugger";
 import { Channel } from "./Channel";
+import { Master } from "./Master";
 
 export class AudioClipPlayer {
 
@@ -13,7 +14,7 @@ export class AudioClipPlayer {
     public outputGainNode: GainNode | null = null;
 
     public context: AudioContext | null = null;
-    public channel: Channel | null = null;
+    public channel: Channel | Master | null = null;
 
     constructor(context: AudioContext) {
         this.context = context;

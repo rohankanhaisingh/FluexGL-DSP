@@ -1,12 +1,13 @@
 import { AudioClip } from "./AudioClip";
 import { Channel } from "./Channel";
+import { Master } from "./Master";
 export declare class AudioClipPlayer {
     label: string;
     id: string;
     audioClips: AudioClip[];
     outputGainNode: GainNode | null;
     context: AudioContext | null;
-    channel: Channel | null;
+    channel: Channel | Master | null;
     constructor(context: AudioContext);
     AttachAudioClip(audioClip: AudioClip): void;
     DetachAudioClip(clip: AudioClip): void;
