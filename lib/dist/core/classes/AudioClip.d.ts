@@ -12,8 +12,8 @@ export declare class AudioClip {
     progressUpdateSpeed: number;
     gainNode: GainNode | null;
     stereoPannerNode: StereoPannerNode | null;
-    parentialAudioContext: AudioContext | null;
-    parentialChannel: Channel | null;
+    context: AudioContext | null;
+    channel: Channel | null;
     preAnalyser: AnalyserNode | null;
     postAnalyser: AnalyserNode | null;
     preAnalyserEnabled: boolean;
