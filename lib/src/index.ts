@@ -55,6 +55,7 @@ export {
     Master,
     AudioClip,
     DspPipeline,
+    AudioClipPlayer
 } from "./core/exports";
 
 export {
@@ -65,7 +66,7 @@ export {
     ResolveDefaultAudioOutputDevice,
     LoadAudioSource,
     LoadAudioSourceFromBlob,
-    LoadWorkletOnMasterChannel,
+    LoadWorkletOnAudioDevice,
     SendMessageToWorklet
 } from "./utilities/helpers";
 

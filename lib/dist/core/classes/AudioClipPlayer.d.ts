@@ -1,12 +1,15 @@
 import { AudioClip } from "./AudioClip";
-import { Master } from "./Master";
+import { Channel } from "./Channel";
 export declare class AudioClipPlayer {
     label: string;
     id: string;
     audioClips: AudioClip[];
     outputGainNode: GainNode | null;
-    constructor(master: Master);
+    context: AudioContext | null;
+    channel: Channel | null;
+    constructor(context: AudioContext);
     AttachAudioClip(audioClip: AudioClip): void;
+    Send(channel: Channel): void;
     SetLabel(label: string): void;
 }
 //# sourceMappingURL=AudioClipPlayer.d.ts.map

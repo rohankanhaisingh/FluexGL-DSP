@@ -1,12 +1,16 @@
 import { v4 } from "uuid";
 import { Debug } from "../../utilities/debugger";
-import { Master } from "./Master";
+import { AudioClipPlayer } from "./AudioClipPlayer";
+import { AudioClip } from "./AudioClip";
 
 export class Channel {
+
     public id: string = v4();
     public label: string = "Channel";
 
-    public linkedChannels: Channel[] = [];
+    public sends: Channel[] = [];
+
+    public audioClipPlayer: AudioClipPlayer | null = null;
 
     public input: AudioNode | null = null;
     public stereoPannerNode: StereoPannerNode | null = null;
@@ -15,37 +19,26 @@ export class Channel {
     public output: AudioNode | null = null;
 
     public context: AudioContext | null = null;
-    public master: Master | null = null;
 
-    constructor(master?: Master) {
-        
-        if (!master) return;
+    constructor(context: AudioContext) {
+        this.context = context;
 
-        this.master = master;
-        this.context = master.context;
-    }
-
-    public Initialize(source: Master | Channel) {
-
-        if (!source.context) return Debug.Error("Could not initialize channel, because the source's AudioContext is undefined.", [
-            "Tried initializing from source (Master or a linked channel): " + source.id
-        ]);
-
-        this.context = source.context;
         this.disconnectAudioNodes(true);
 
-        const ctx: AudioContext = this.context;
+        this.input = new GainNode(context);
+        this.stereoPannerNode = new StereoPannerNode(context);
+        this.analyserNode = new AnalyserNode(context);
+        this.gainNode = new GainNode(context);
+        this.output = new GainNode(context);
 
-        this.input = ctx.createGain();
-        this.stereoPannerNode = ctx.createStereoPanner();
-        this.analyserNode = ctx.createAnalyser();
-        this.gainNode = ctx.createGain();
-        this.output = ctx.createGain();
+        this.audioClipPlayer = new AudioClipPlayer(context);
 
         this.input.connect(this.stereoPannerNode);
         this.stereoPannerNode.connect(this.analyserNode);
         this.analyserNode.connect(this.gainNode);
         this.gainNode.connect(this.output);
+
+        this.audioClipPlayer.Send(this);
     }
 
     private disconnectAudioNodes(gc?: boolean) {
@@ -86,14 +79,14 @@ export class Channel {
 
             visited.add(current.id);
 
-            for (let i: number = 0; i < current.linkedChannels.length; i++)
-                stack.push(current.linkedChannels[i]);
+            for (let i: number = 0; i < current.sends.length; i++)
+                stack.push(current.sends[i]);
         }
 
         return false;
     }
 
-    public Link(channel: Channel) {
+    public Send(channel: Channel) {
 
         if (channel.id === this.id) return Debug.Error("Could not link channel to itself.", [
             `This channel id: ${this.id}`
@@ -109,7 +102,7 @@ export class Channel {
             `Target channel context: ${channel.context ? "set" : "null"}`
         ]);
 
-        if (this.linkedChannels.includes(channel)) return Debug.Error("Could not link channels, because the given channel is already linked with this one.", [
+        if (this.sends.includes(channel)) return Debug.Error("Could not link channels, because the given channel is already linked with this one.", [
             `This channel id: ${this.id}`,
             `Target channel id: ${channel.id}`
         ]);
@@ -121,28 +114,34 @@ export class Channel {
 
         (this.output as AudioNode).connect(channel.input as AudioNode);
 
-        this.linkedChannels.push(channel);
+        this.sends.push(channel);
     }
 
-    public Unlink(channel: Channel) {
+    public Unsend(channel: Channel) {
 
-        const idx: number = this.linkedChannels.indexOf(channel);
+        const idx: number = this.sends.indexOf(channel);
 
         if (idx === -1) return;
 
         if (this.output && channel.input)
             this.output.disconnect(channel.input);
 
-        this.linkedChannels.splice(idx, 1);
+        this.sends.splice(idx, 1);
     }
 
-    public UnlinkFromAllChannels() {
+    public UnsendToAllChannels() {
 
-        for (var i: number = 0; i < this.linkedChannels.length; i++) {
+        for (var i: number = 0; i < this.sends.length; i++) {
 
-            this.Unlink(this.linkedChannels[i]);
-
+            this.Unsend(this.sends[i]);
             i--;
         }
+    }
+
+    public LinkAudioClip(audioClip: AudioClip) {
+
+        if(!this.audioClipPlayer) return Debug.Error("Cannot not link AudioClip to this channel because this channel's AudioClipPlayer is undefined.");
+
+        this.audioClipPlayer.AttachAudioClip(audioClip);
     }
 }

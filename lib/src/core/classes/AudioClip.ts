@@ -4,13 +4,13 @@ import { format } from "date-fns";
 import { AudioClipAnalyserProperty, AudioClipAnalyserType, AudioClipEventMap, AudioClipEvents, AudioSourceData } from "../../typings";
 import { Debug } from "../../utilities/debugger";
 import { Channel } from "./Channel";
+import { AudioClipPlayer } from "./AudioClipPlayer";
 
 type ProgressPayload = Parameters<AudioClipEventMap["progress"]>[0];
 
 export class AudioClip {
 
     public id: string = v4();
-    public hasAttachedToChannel: boolean = false;
     public label: string | null = null;
 
     public loop: boolean = false;
@@ -24,22 +24,7 @@ export class AudioClip {
     public stereoPannerNode: StereoPannerNode | null = null;
 
     public context: AudioContext | null = null;
-    public channel: Channel | null = null;
-
-    public preAnalyser: AnalyserNode | null = null;
-    public postAnalyser: AnalyserNode | null = null;
-
-    public preAnalyserEnabled: boolean = false;
-    public postAnalyserEnabled: boolean = false;
-
-    public preAnalyserOptions: AnalyserOptions = {};
-    public postAnalyserOptions: AnalyserOptions = {};
-
-    public preAnalyserFloatArrayBuffer = new Float32Array();
-    public postAnalyserFloatArrayBuffer = new Float32Array();
-
-    public preAnalyserByteArrayBuffer = new Uint8Array();
-    public postAnalyserByteArrayBuffer = new Uint8Array();
+    public audioClipPlayer: AudioClipPlayer | null = null;
 
     private audioBufferSourceNodes: AudioBufferSourceNode[] = [];
     private maxAudioBufferSourceNodes: number = 1;
@@ -51,8 +36,6 @@ export class AudioClip {
     }
 
     constructor(public data: AudioSourceData) { }
-
-    // Private methods.
 
     private createBufferSource(): AudioBufferSourceNode | null {
 
@@ -78,72 +61,44 @@ export class AudioClip {
         node?.disconnect();
     }
 
-    private rebuildNodeChain() {
+    private rebuildNodeChain(): boolean {
 
-        if (!this.context || !this.gainNode || !this.stereoPannerNode || !this.channel || !this.channel.input) {
-
-            Debug.Error("rebuildNodeChain: missing context or core nodes (gain/panner).");
+        if (!this.context || !this.gainNode || !this.stereoPannerNode || !this.audioClipPlayer || !this.audioClipPlayer.outputGainNode) {
+            Debug.Error("Failed to rebuild node chain, because some of the core AudioNodes are missing.");
             return false;
         }
 
-        const destination = this.channel.input;
+        const destination = this.audioClipPlayer.outputGainNode;
 
         this.safeDisconnect(this.gainNode);
         this.safeDisconnect(this.stereoPannerNode);
-        this.safeDisconnect(this.preAnalyser);
-        this.safeDisconnect(this.postAnalyser);
-
-        let entry: AudioNode = this.gainNode;
-
-        if (this.preAnalyserEnabled && this.preAnalyser) {
-
-            entry = this.preAnalyser;
-            this.preAnalyser.connect(this.gainNode);
-        }
 
         this.gainNode.connect(this.stereoPannerNode);
+        this.stereoPannerNode.connect(destination);
 
-        if (this.postAnalyserEnabled && this.postAnalyser) {
-            this.stereoPannerNode.connect(this.postAnalyser);
-            this.postAnalyser.connect(destination);
-        } else {
-            this.stereoPannerNode.connect(destination);
-        }
-
-        this.connectSourcesTo(entry);
+        this.connectSourcesTo(this.gainNode);
         return true;
     }
 
-    // Public methods
+    public Initialize(audioClipPlayer: AudioClipPlayer) {
 
-    public InitializeAudioClipOnAttaching(channel: Channel): AudioClip | null {
+        if (!audioClipPlayer.context) return Debug.Error("Could not initialize AudioClip, because the AudioClipPlayer somehow has no audio context.", [
+            `AudioClipPlayer id: ${audioClipPlayer.id}`,
+            `AudioClip id: ${this.id}`
+        ]);
 
-        if (!channel.context || !channel.input) {
+        this.audioClipPlayer = audioClipPlayer;
+        this.context = audioClipPlayer.context;
 
-            Debug.Error("Could not initialize audio clip on channel attachment, because channel it's master channel has not been defined.", [
-                `Call .AttachChannel([channel<"${channel.id}"> Channel]) on the master channel.`
-            ]);
-            return null;
-        }
-
-        this.gainNode = new GainNode(channel.context);
-        this.stereoPannerNode = new StereoPannerNode(channel.context);
-
-        this.context = channel.context;
-        this.channel = channel;
-        this.hasAttachedToChannel = true;
-
-        return this;
+        this.gainNode = new GainNode(this.context);
+        this.stereoPannerNode = new StereoPannerNode(this.context);
     }
 
-    public Play(timestamp?: number, offset?: number): AudioClip | null {
+    public Play(timestamp?: number, offset?: number) {
 
-        if (!this.hasAttachedToChannel || !this.context || !this.channel) {
-            Debug.Error("Could not play the audio node because it is not attached to a channel", [
-                "Call 'AttachAudioClip([clip AudioClip])' on a channel, before playing this audio node."
-            ]);
-            return this;
-        }
+        if (!this.context) return Debug.Error("Could not play audio clip, because context (AudioContext) is undefined.", [
+            "Make sure to attach this AudioClip to an AudioClipPlayer instance, before calling .Play on this AudioClip."
+        ]);
 
         const context = this.context;
         const self = this;
@@ -208,19 +163,19 @@ export class AudioClip {
         return this;
     }
 
-    public Seek(seconds: number): AudioClip | null {
+    public Seek(seconds: number) {
 
-        if (!this.context || !this.hasAttachedToChannel) {
-            Debug.Error("Could not seek because the clip is not attached to a channel.", [
-                `Clip ID: ${this.id}`
-            ]);
-            return null;
-        }
+        if (!this.context) return Debug.Error("Could not seek because the context (AudioContext) of this AudioClip is undefined.", [
+            `Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .Seek on this AudioClip.`,
+            `AudioClip id: ${this.id}`
+        ]);
 
         const clamped = Math.max(0, Math.min(seconds, this.duration));
 
         if (!this.isPlaying) {
+
             this.offsetAtStart = clamped;
+
             return this;
         }
 
@@ -230,20 +185,9 @@ export class AudioClip {
         return this;
     }
 
-
     public Stop(): AudioClip | null {
 
-        if (!this.hasAttachedToChannel || !this.context) {
-
-            Debug.Error("Could not stop the audio node because it is not attached to a channel", [
-                "Call 'AttachAudioClip([node AudioNode])' on a channel, before stopping this audio node."
-            ]);
-
-            return null;
-        }
-
         this.audioBufferSourceNodes.forEach(function (node: AudioBufferSourceNode) {
-
             node.stop();
             node.disconnect();
         });
@@ -252,35 +196,43 @@ export class AudioClip {
         this.isPlaying = false;
 
         if (this.progressInterval) {
-
             clearInterval(this.progressInterval);
             this.progressInterval = null;
         }
 
         return this;
     }
-    public SetVolume(volume: number): AudioClip | void {
 
-        if (!this.gainNode || !this.context) return Debug.Error("Something went wrong while setting the volume.", [
-            `Gain node on audio clip '${this.id}' is undefined.`
+    public SetVolume(volume: number): AudioClip {
+
+        if (!this.context) Debug.Error("Could not set volume because the context (AudioContext) of this AudioClip is undefined.", [
+            "Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .SetVolume() on this AudioClip.",
         ]);
 
-        this.gainNode.gain.setValueAtTime(volume, this.context.currentTime);
+        if (!this.gainNode) Debug.Error("Could not set volume because the gainNode (GainNode) of this AudioClip is undefined.", [
+            "Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .SetVolume() on this AudioClip.",
+        ]);
 
+        this.gainNode?.gain.setValueAtTime(volume, this.context?.currentTime ?? 0);
         return this;
     }
 
-    public SetPanLevel(panLevel: number): AudioClip | void {
+    public SetPanLevel(panLevel: number): AudioClip {
 
-        if (!this.stereoPannerNode || !this.context) return Debug.Error("Something went wrong while setting the pan level", [
-            `Stereo panner node on audio clip '${this.id}' is undefined`
+        if (!this.context) Debug.Error("Could not set volume because the context (AudioContext) of this AudioClip is undefined.", [
+            "Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .SetPanLevel() on this AudioClip.",
         ]);
 
-        if (panLevel < -1 || panLevel > 1) return Debug.Error("Could not set the pan level because it is not between -1 and 1.", [
-            "Provide this method with a value between -1 and 1"
+        if (!this.stereoPannerNode) Debug.Error("Could not set volume because the stereoPannerNode (StereoPannerNode) of this AudioClip is undefined.", [
+            "Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .SetPanLevel() on this AudioClip.",
         ]);
 
-        this.stereoPannerNode.pan.setValueAtTime(panLevel, this.context.currentTime);
+        if (panLevel < -1 || panLevel > 1) Debug.Error("Could not set the pan level because it is not between -1 and 1.", [
+            `Given value: ${panLevel}.`,
+            `Accepts a value between -1 and 1. Can be a floating number.`
+        ]);
+
+        this.stereoPannerNode?.pan.setValueAtTime(panLevel, this.context?.currentTime ?? 0);
         return this;
     }
 
@@ -321,7 +273,6 @@ export class AudioClip {
     public AddEventListener<K extends keyof AudioClipEventMap>(event: K, cb: AudioClipEventMap[K]): () => void {
 
         this.events[event].push(cb);
-
         return () => this.RemoveEventListener(event, cb);
     }
 
@@ -331,7 +282,6 @@ export class AudioClip {
 
             // @ts-ignore
             cb(...args);
-
             this.RemoveEventListener(event, wrapper as unknown as AudioClipEventMap[K]);
         }) as unknown as AudioClipEventMap[K];
 
@@ -363,143 +313,8 @@ export class AudioClip {
     }
 
     public GetChannelData(channel: number = 0): Float32Array {
-
         return this.data.audioBuffer.getChannelData(channel);
     }
-
-    public EnablePreAnalyser(): boolean {
-
-        if (!this.context || !this.channel || !this.hasAttachedToChannel) {
-            Debug.Error("EnablePreAnalyser: clip niet aan channel gekoppeld.");
-            return false;
-        }
-
-        if (!this.preAnalyser)
-            this.preAnalyser = new AnalyserNode(this.context, this.preAnalyserOptions);
-
-        this.preAnalyserFloatArrayBuffer = new Float32Array(this.preAnalyser.fftSize);
-        this.preAnalyserByteArrayBuffer = new Uint8Array(this.preAnalyser.fftSize);
-
-        this.preAnalyserEnabled = true;
-        return this.rebuildNodeChain();
-    }
-
-    public DisablePreAnalyser() {
-
-        this.preAnalyserEnabled = false;
-        return this.rebuildNodeChain();
-    }
-
-    public EnablePostAnalyser() {
-
-        if (!this.context || !this.channel || !this.hasAttachedToChannel) {
-
-            Debug.Error("EnablePostAnalyser: clip niet aan channel gekoppeld.");
-            return false;
-        }
-
-        if (!this.postAnalyser)
-            this.postAnalyser = new AnalyserNode(this.context, this.postAnalyserOptions);
-
-        this.postAnalyserFloatArrayBuffer = new Float32Array(this.postAnalyser.fftSize);
-        this.postAnalyserByteArrayBuffer = new Uint8Array(this.postAnalyser.fftSize);
-
-        this.postAnalyserEnabled = true;
-        return this.rebuildNodeChain();
-    }
-
-    public DisablePostAnalyser() {
-
-        this.postAnalyserEnabled = false;
-        return this.rebuildNodeChain();
-    }
-
-    public SetPreAnalyserOptions(options: AnalyserOptions) {
-
-        this.preAnalyserOptions = { ...options };
-
-        if (!this.preAnalyser) return;
-
-        this.preAnalyser.fftSize = options.fftSize ?? this.preAnalyser.fftSize;
-        this.preAnalyser.minDecibels = options.minDecibels ?? this.preAnalyser.minDecibels;
-        this.preAnalyser.maxDecibels = options.maxDecibels ?? this.preAnalyser.maxDecibels;
-        this.preAnalyser.smoothingTimeConstant = options.smoothingTimeConstant ?? this.preAnalyser.smoothingTimeConstant;
-    }
-
-    public SetPostAnalyserOptions(options: AnalyserOptions) {
-
-        this.postAnalyserOptions = { ...options };
-
-        if (!this.postAnalyser) return;
-
-        this.postAnalyser.fftSize = options.fftSize ?? this.postAnalyser.fftSize;
-        this.postAnalyser.minDecibels = options.minDecibels ?? this.postAnalyser.minDecibels;
-        this.postAnalyser.maxDecibels = options.maxDecibels ?? this.postAnalyser.maxDecibels;
-        this.postAnalyser.smoothingTimeConstant = options.smoothingTimeConstant ?? this.postAnalyser.smoothingTimeConstant;
-    }
-
-    public SetAnalyserOption(analyserType: AudioClipAnalyserType, property: AudioClipAnalyserProperty, value: number) {
-
-        const node = analyserType === "pre" ? this.preAnalyser : this.postAnalyser;
-
-        if (node) switch (property) {
-            case "fftSize": node.fftSize = value as AnalyserNode["fftSize"]; break;
-            case "minDecibels": node.minDecibels = value; break;
-            case "maxDecibels": node.maxDecibels = value; break;
-            case "smoothingTimeConstant": node.smoothingTimeConstant = value; break;
-            default: return false;
-        }
-
-        const opts = analyserType === "pre" ? this.preAnalyserOptions : this.postAnalyserOptions;
-
-        switch (property) {
-            case "fftSize": opts.fftSize = value as AnalyserNode["fftSize"]; break;
-            case "minDecibels": opts.minDecibels = value; break;
-            case "maxDecibels": opts.maxDecibels = value; break;
-            case "smoothingTimeConstant": opts.smoothingTimeConstant = value; break;
-            default: return false;
-        }
-
-        return true;
-    }
-
-    public GetWaveformFloatData(analyserType: AudioClipAnalyserType): Float32Array | null {
-
-        if (analyserType === "pre" && this.preAnalyser) {
-            this.preAnalyser.getFloatTimeDomainData(this.preAnalyserFloatArrayBuffer);
-            return this.preAnalyserFloatArrayBuffer;
-        } else if (analyserType === "post" && this.postAnalyser) {
-            this.postAnalyser.getFloatTimeDomainData(this.postAnalyserFloatArrayBuffer);
-            return this.postAnalyserFloatArrayBuffer;
-        }
-
-        return null;
-    }
-
-    public GetWaveformByteData(analyserType: AudioClipAnalyserType): Uint8Array | null {
-
-        if (!this.preAnalyser || !this.postAnalyser) {
-
-            Debug.Error("Could not get byte waveform data because the pre analyser or post analyser has not been enabled.", [
-                "Call .EnablePreAnalyser() or .EnablePostAnalyser() before getting waveform data."
-            ]);
-
-            return null;
-        }
-
-        switch (analyserType) {
-            case "pre":
-                this.preAnalyser.getByteTimeDomainData(this.preAnalyserByteArrayBuffer);
-                return this.preAnalyserByteArrayBuffer;
-            case "post":
-                this.postAnalyser.getByteTimeDomainData(this.postAnalyserByteArrayBuffer);
-                return this.postAnalyserByteArrayBuffer;
-            default:
-                return null;
-        }
-    }
-
-    // Public getters and setters
 
     public get currentPlaybackTime(): number {
         return (!this.isPlaying || !this.context)

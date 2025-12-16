@@ -113,7 +113,7 @@ export async function ResolveDefaultAudioOutputDevice(init: DspPipelineInitializ
 
     if (!defaultAudioDevice) return null;
 
-    await LoadWorkletOnMasterChannel(defaultAudioDevice.masterChannel, init.workletBlobUrl);
+    await LoadWorkletOnAudioDevice(defaultAudioDevice, init.workletBlobUrl);
 
     return defaultAudioDevice;
 }
@@ -138,7 +138,7 @@ export async function ResolveDefaultAudioInputDevice(init: DspPipelineInitializa
 
     if (!defaultAudioDevice) return null;
 
-    await LoadWorkletOnMasterChannel(defaultAudioDevice.masterChannel, init.workletBlobUrl);
+    await LoadWorkletOnAudioDevice(defaultAudioDevice, init.workletBlobUrl);
 
     return defaultAudioDevice;
 }
@@ -213,10 +213,10 @@ export function ConstructProcessorWorklet(code: string): string {
     return URL.createObjectURL(blob);
 }
 
-export async function LoadWorkletOnMasterChannel(master: Master, workletBlobUrl: string) {
-    Debug.Log("Loading worklet modules on master channel...", [`Channel ID: ${master.id}`]);
+export async function LoadWorkletOnAudioDevice(audioDevice: AudioDevice, workletBlobUrl: string) {
+    Debug.Log("Loading worklet modules on master channel...", [`Channel ID: ${audioDevice.id}`]);
 
-    const context: AudioContext = master.context,
+    const context: AudioContext = audioDevice.context,
         start: number = Date.now();
 
     await context.audioWorklet.addModule(workletBlobUrl);
