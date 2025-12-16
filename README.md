@@ -21,57 +21,35 @@ $ npm i @fluex/fluexgl-dsp
 ## ⚡ Quick start
 
 ```ts
-import { 
-    AudioDevice, 
-    InitializeDspPipeline, 
-    LoadAudioSource, 
-    ResolveDefaultAudioOutputDevice, 
-    Channel, 
-    AudioSourceData, 
-    AudioClip 
-} from "@fluexgl/dsp";
+import { DspPipeline, Channel, LoadAudioSource, AudioClip } from "@fluex/fluexgl-dsp";
 
 (async function() {
 
-    // Make sure that FluexGL can access audio devices.
-    const hasInitialized = await InitializeDspPipeline();
-
-    if(!hasInitialized) return null;
-
-    // Resolves the default audio output device.
-    const audioDevice: AudioDevice | null = await ResolveDefaultAudioOutputDevice({
-        pathToWasm: "/wasm/fluexgl-dsp-wasm_bg.wasm"
+    const pipeline = new DspPipeline({
+        pathToWasm: "/data/fluexgl-dsp-wasm_bg.wasm",
+        pathToWorklet: "/data/fluexgl-dsp-processor.worklet"
     });
+
+    await pipeline.InitializeDpsPipeline();
+
+    const audioDevice = await pipeline.ResolveDefaultAudioOutputDevice();
 
     if(!audioDevice) return;
 
-    // Get the master channel from the default audio output device.
-    const masterChannel = audioDevice.GetMasterChannel();
+    const master = audioDevice.GetMasterChannel();
+    const context = audioDevice.GetContext();
 
-    // Create a new empty channel.
-    const channel = new Channel();
+    const audioSource = await LoadAudioSource("/music.mp3");
 
-    // Label the channel as 'BackgroundMusic'.
-    channel.SetLabel("BackgroundMusic");
+    if(!audioSource) return;
 
-    // Attach the 'BackgroundMusic' channel, to the device's master channel.
-    masterChannel.AttachChannel(channel);
+    const audioClip = new AudioClip(audioSource);
+    const channel = new Channel(context);
 
-    // Load the data from the audio source.
-    const audioSourceData: AudioSourceData | null = await LoadAudioSource("/assets/data/bruh.mp3");
+    channel.Send(master);
+    audioClip.Send(channel);
 
-    if(!audioSourceData) return;
-
-    // Create a audio node based on the data.
-    const audioClip = new AudioClip(audioSourceData);
-
-    // Attach the audio node to the channel.
-    channel.AttachAudioClip(audioClip);
-
-    // Click event listener on window.
-    window.addEventListener("click", function() {
-
-        // Play the audio clip
+    button.addEventListener("click", function() {
         audioClip.Play();
     });
 })();
