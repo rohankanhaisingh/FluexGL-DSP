@@ -3,7 +3,7 @@ import { v4 } from "uuid";
 import { AudioDevice } from "./AudioDevice";
 import { Debug } from "../../utilities/debugger";
 import { LoadWebAssemblyModule } from "../../utilities/web-assembly";
-import { ConstructProcessorWorklet, LoadWorkletOnMasterChannel } from "../../utilities/helpers";
+import { ConstructProcessorWorklet, LoadWorkletOnAudioDevice } from "../../utilities/helpers";
 
 import { ErrorCodes, WarningCodes } from "../../console-codes";
 import { DspPipelineInitializationOptions } from "../../typings";
@@ -142,7 +142,7 @@ export class DspPipeline {
 
         if (!defaultAudioDevice) return null;
 
-        await LoadWorkletOnMasterChannel(defaultAudioDevice.masterChannel, this.blobUrl);
+        await LoadWorkletOnAudioDevice(defaultAudioDevice, this.blobUrl);
 
         return defaultAudioDevice;
     }

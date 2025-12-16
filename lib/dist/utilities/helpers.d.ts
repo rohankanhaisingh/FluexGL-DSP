@@ -1,5 +1,4 @@
 import { AudioDevice } from "../core/classes/AudioDevice";
-import { Master } from "../core/classes/Master";
 import { LoadAudioSourceOptions, AudioSourceData, DspPipelineInitializationOptions, DspPipelineInitializationState, AudioWorkletProcessorNames } from "../typings";
 /**
  * Initializes the DSP pipeline by requesting audio permissions and initializing the WASM module.
@@ -41,7 +40,7 @@ export declare function LoadAudioSource(path: string, options?: Partial<LoadAudi
  */
 export declare function LoadAudioSourceFromBlob(blob: Blob): Promise<AudioSourceData | null>;
 export declare function ConstructProcessorWorklet(code: string): string;
-export declare function LoadWorkletOnMasterChannel(master: Master, workletBlobUrl: string): Promise<boolean>;
+export declare function LoadWorkletOnAudioDevice(audioDevice: AudioDevice, workletBlobUrl: string): Promise<boolean>;
 export declare function SendMessageToWorklet<T, K = any>(node: AudioWorkletNode | null, commandId: T, data: K): boolean;
 export declare function CreateAudioWorkletNode<T = any>(context: AudioContext, name: AudioWorkletProcessorNames | string, data: T): AudioWorkletNode | null;
 //# sourceMappingURL=helpers.d.ts.map
