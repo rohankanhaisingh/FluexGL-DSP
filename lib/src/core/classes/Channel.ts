@@ -2,15 +2,12 @@ import { v4 } from "uuid";
 import { Debug } from "../../utilities/debugger";
 import { AudioClipPlayer } from "./AudioClipPlayer";
 import { AudioClip } from "./AudioClip";
+import { Master } from "./Master";
 
 export class Channel {
 
     public id: string = v4();
     public label: string = "Channel";
-
-    public sends: Channel[] = [];
-
-    public audioClipPlayer: AudioClipPlayer | null = null;
 
     public input: AudioNode | null = null;
     public stereoPannerNode: StereoPannerNode | null = null;
@@ -19,6 +16,9 @@ export class Channel {
     public output: AudioNode | null = null;
 
     public context: AudioContext | null = null;
+
+    private sends: Channel[] = [];
+    private audioClipPlayer: AudioClipPlayer | null = null;
 
     constructor(context: AudioContext) {
         this.context = context;
@@ -86,7 +86,9 @@ export class Channel {
         return false;
     }
 
-    public Send(channel: Channel) {
+    public Send(channel: Channel | Master) {
+
+        if (channel instanceof Master) return (channel as Master).AttachChannel(this);
 
         if (channel.id === this.id) return Debug.Error("Could not link channel to itself.", [
             `This channel id: ${this.id}`
@@ -117,7 +119,10 @@ export class Channel {
         this.sends.push(channel);
     }
 
-    public Unsend(channel: Channel) {
+    public Unsend(channel: Channel | Master) {
+
+        if(channel instanceof Master) 
+            return (channel as Master).DetachChannel(this);
 
         const idx: number = this.sends.indexOf(channel);
 
@@ -129,6 +134,10 @@ export class Channel {
         this.sends.splice(idx, 1);
     }
 
+    public HasAudioClipPlayer(): boolean {
+        return !!this.audioClipPlayer;
+    }
+
     public UnsendToAllChannels() {
 
         for (var i: number = 0; i < this.sends.length; i++) {
@@ -138,9 +147,9 @@ export class Channel {
         }
     }
 
-    public LinkAudioClip(audioClip: AudioClip) {
+    public AttachAudioClip(audioClip: AudioClip) {
 
-        if(!this.audioClipPlayer) return Debug.Error("Cannot not link AudioClip to this channel because this channel's AudioClipPlayer is undefined.");
+        if (!this.audioClipPlayer) return Debug.Error("Cannot not link AudioClip to this channel because this channel's AudioClipPlayer is undefined.");
 
         this.audioClipPlayer.AttachAudioClip(audioClip);
     }

@@ -33,6 +33,10 @@ export class Master {
         ]);
 
         this.channels.push(channel);
+
+        if (channel.output && this.gainNode)
+            channel.output.connect(this.gainNode);
+        
         return;
     }
 
@@ -41,6 +45,9 @@ export class Master {
         if (!this.channels.includes(channel)) return Debug.Error("Could not detach the channel because it is not part of this master channel.", [
             "Call .AttachChannel([channel Channel]) before detaching the channel."
         ]);
+
+        if (channel.output && this.gainNode)
+            channel.output.disconnect(this.gainNode);
 
         const self = this;
 

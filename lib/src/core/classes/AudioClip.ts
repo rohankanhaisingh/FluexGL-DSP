@@ -316,6 +316,17 @@ export class AudioClip {
         return this.data.audioBuffer.getChannelData(channel);
     }
 
+    public Send(channel: Channel) {
+
+        if(!channel.HasAudioClipPlayer()) return Debug.Error("Could not send AudioClip signal to channel, because the channel's AudioClipPlayer is undefined.", [
+            "Make sure to initialize the Channel.",
+            `Channel id: ${channel.id}.`,
+            `AudioClip id: ${this.id}.`
+        ]);
+
+        channel.AttachAudioClip(this);
+    }
+
     public get currentPlaybackTime(): number {
         return (!this.isPlaying || !this.context)
             ? 0
