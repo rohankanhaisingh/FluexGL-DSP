@@ -1,8 +1,12 @@
 export declare type ChannelSpatialization = "mono" | "stereo" | "surround";
 export declare type AudioClipAnalyserType = "pre" | "post";
 export declare type AudioClipAnalyserProperty = "fftSize" | "minDecibels" | "maxDecibels" | "smoothingTimeConstant";
+export declare type IncomingMessageType = "message" | "error" | "warning" | "wasm-instantiated";
 export declare type AudioClipEvents = {
     [K in keyof AudioClipEventMap]: AudioClipEventMap[K][];
+};
+export declare type EffectorEvents = {
+    [K in keyof EffectorEventMap]: EffectorEventMap[K][];
 };
 export declare enum LowPassFilterMessageCommandId {
     SetCutoff = 0,
@@ -41,6 +45,11 @@ export declare enum AudioWorkletProcessorNames {
     Reverb = "ReverbProcessor",
     SoftClip = "SoftClipProcessor",
     HardClip = "HardClipProcessor"
+}
+export declare enum ProcessorIdentificationCodes {
+    UnknownProcessorId = "UNKNOWN_PROCESSOR_ID",
+    UnknownProcessorName = "UNKNOWN_PROCESSOR_NAME",
+    UnknownProcessorCreationDate = "UNKNOWN_PROCESSOR_CREATION_DATE"
 }
 export interface FluexGLAudioDebuggerOptions {
     breakOnError: boolean;
@@ -114,5 +123,25 @@ export interface SoftClipOptions {
 export interface HardClipOptions {
     drive: number;
     gain: number;
+}
+export interface EffectorEventMap {
+    "incoming-processor-message": (message: IncomingProcessorMessage) => void;
+    "incoming-processor-warning": (message: IncomingProcessorMessage) => void;
+    "incoming-processor-error": (message: IncomingProcessorMessage) => void;
+    "initialized-on-channel-attachment": (message: IncomingProcessorMessage) => void;
+    "processor-wasm-instantiated": (message: IncomingProcessorMessage) => void;
+}
+export interface ProcessorData {
+    id: string | ProcessorIdentificationCodes.UnknownProcessorId;
+    name: string | ProcessorIdentificationCodes.UnknownProcessorName;
+    createdAt: number | ProcessorIdentificationCodes.UnknownProcessorCreationDate;
+}
+export interface IncomingProcessorMessage {
+    id: string;
+    timestamp: number;
+    message: string;
+    type: IncomingMessageType;
+    processor: ProcessorData;
+    additionalData?: any;
 }
 //# sourceMappingURL=typings.d.ts.map
