@@ -9,7 +9,12 @@ export declare class AudioClipPlayer {
     channel: Channel | null;
     constructor(context: AudioContext);
     AttachAudioClip(audioClip: AudioClip): void;
+    DetachAudioClip(clip: AudioClip): void;
     Send(channel: Channel): void;
+    Unsend(): void;
+    SetVolume(value: number): void;
+    StopAll(): void;
+    Dispose(): void;
     SetLabel(label: string): void;
 }
 //# sourceMappingURL=AudioClipPlayer.d.ts.map
