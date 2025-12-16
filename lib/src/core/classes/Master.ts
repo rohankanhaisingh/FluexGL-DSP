@@ -20,6 +20,8 @@ export class Master {
 
         this.context = context;
 
+        this.disconnectAudioNodes();
+
         this.inputNode = new GainNode(context);
         this.gainNode = new GainNode(context);
         this.analyserNode = new AnalyserNode(context);
@@ -120,7 +122,7 @@ export class Master {
 
         this.channels.forEach(function (_channel: Channel, index: number) {
             if (channel.id !== _channel.id) return;
-            
+
             self.channels.splice(index, 1);
         });
     }
