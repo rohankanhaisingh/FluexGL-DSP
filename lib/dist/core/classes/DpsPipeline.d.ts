@@ -31,7 +31,7 @@ export declare class DspPipeline {
      * @param options - Initialization options for the DSP pipeline.
      * Must include valid paths to the WebAssembly and AudioWorklet files.
      */
-    constructor(options: DspPipelineInitializationOptions);
+    constructor({ pathToWasm, pathToWorklet, options }: DspPipelineInitializationOptions);
     /**
      * Initializes the DSP pipeline.
      * This is a convenience wrapper around {@link InitializeDpsPipeline}.

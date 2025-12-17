@@ -7,6 +7,7 @@ import { ConstructProcessorWorklet, LoadWorkletOnAudioDevice } from "../../utili
 
 import { ErrorCodes, WarningCodes } from "../../console-codes";
 import { DspPipelineInitializationOptions } from "../../typings";
+import { DSP } from "../../index";
 
 /**
  * Represents the digital signal processing (DSP) pipeline responsible for initializing
@@ -45,9 +46,12 @@ export class DspPipeline {
      * @param options - Initialization options for the DSP pipeline.
      * Must include valid paths to the WebAssembly and AudioWorklet files.
      */
-    constructor(options: DspPipelineInitializationOptions) {
-        this.pathToWasm = options.pathToWasm;
-        this.pathToWorklet = options.pathToWorklet;
+    constructor({ pathToWasm, pathToWorklet, options }: DspPipelineInitializationOptions) {
+        this.pathToWasm = pathToWasm;
+        this.pathToWorklet = pathToWorklet;
+
+        // @ts-ignore
+        for(const key in options) DSP[key] = options[key];
     }
 
     /**

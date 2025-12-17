@@ -6,6 +6,7 @@ import { Debug } from "../../utilities/debugger";
 import { Channel } from "./Channel";
 import { AudioClipPlayer } from "./AudioClipPlayer";
 import { Master } from "./Master";
+import { DSP } from "../../index";
 
 type ProgressPayload = Parameters<AudioClipEventMap["progress"]>[0];
 
@@ -249,9 +250,12 @@ export class AudioClip {
 
     public SetMaxAudioBufferSourceNodes(value: number): AudioClip {
 
-        Debug.Warn("Changing the amount of buffer source nodes may cause some properties of this class instance to work inproperly.", [
-            "The default value is 1."
-        ]);
+        if (!DSP.overrideMaxAudioBufferNodes) {
+            Debug.Warn("Cannot set maxAudioBufferSourceNodes because the option to override the current maximum value is disabled.", [
+                "Set overrideMaxAudioBufferNodes on DSP to true, in order to override the maximum audio buffer source nodes."
+            ]);
+            return this;
+        }
 
         this.maxAudioBufferSourceNodes = value;
         return this;

@@ -65,28 +65,20 @@ export enum StrictMode {
     Enabled = 0x01
 }
 
-export interface FluexGLAudioDebuggerOptions {
+export interface DspDebuggerOptions {
     breakOnError: boolean;
     showInfo: boolean;
     showErrors: boolean;
     showWarnings: boolean;
 }
 
-export interface FluexGLAudioOptions {
+export interface DspOptions {
     maxMasterChannels: number;
     maxTotalChannels: number;
     sampleRate: number;
     spatialization: ChannelSpatialization;
-    debugger: FluexGLAudioDebuggerOptions;
-}
-
-export interface FluexGLAudioDescriptor {
-    name: string;
-    author: string;
-    version: string;
-    license: string;
-    repository: string;
-    options: FluexGLAudioOptions;
+    debugger: DspDebuggerOptions;
+    overrideMaxAudioBufferNodes: boolean;
 }
 
 export interface LoadAudioSourceOptions {
@@ -121,6 +113,7 @@ export interface AudioClipEventMap {
 export interface DspPipelineInitializationOptions {
     pathToWasm: string;
     pathToWorklet: string;
+    options?: Partial<DspOptions>;
 }
 
 export interface DspPipelineInitializationState {

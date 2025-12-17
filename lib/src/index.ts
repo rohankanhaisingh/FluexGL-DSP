@@ -3,25 +3,19 @@
  * A javascript digital audio processor library.
  */
 
-import { FluexGLAudioDescriptor } from "./typings";
+import { DspOptions } from "./typings";
 
-export const FluexGLAudio: FluexGLAudioDescriptor = {
-    name: "FluexGL Audio",
-    author: "Rohan Kanhaisingh",
-    version: "0.0.2",
-    license: "MIT",
-    repository: "https://github.com/rohankanhaisingh/FluexGL-Audio",
-    options: {
-        maxMasterChannels: 8,
-        maxTotalChannels: 128,
-        sampleRate: 44000,
-        spatialization: "stereo",
-        debugger: {
-            showErrors: true,
-            showInfo: true,
-            showWarnings: true,
-            breakOnError: true
-        }
+export const DSP: DspOptions = {
+    maxMasterChannels: 8,
+    maxTotalChannels: 128,
+    sampleRate: 44000,
+    spatialization: "stereo",
+    overrideMaxAudioBufferNodes: false,
+    debugger: {
+        showErrors: true,
+        showInfo: true,
+        showWarnings: true,
+        breakOnError: true
     }
 }
 
@@ -90,9 +84,8 @@ export {
 } from "./typings";
 
 export type {
-    FluexGLAudioDescriptor,
-    FluexGLAudioDebuggerOptions,
-    FluexGLAudioOptions,
+    DspDebuggerOptions,
+    DspOptions,
     LoadAudioSourceOptions,
     AudioSourceData,
     ChannelOptions,
