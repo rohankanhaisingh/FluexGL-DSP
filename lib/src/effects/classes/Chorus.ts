@@ -1,6 +1,6 @@
-import { SendMessageToWorklet, CreateAudioWorkletNode } from "../../utilities/helpers";
+import { CoerceFiniteNumber, SendMessageToWorklet, CreateAudioWorkletNode } from "../../utilities/helpers";
 import { Effector } from "../../core/classes/Effector";
-import { ChorusEffectOptions, ChorusMessageCommandId, AudioWorkletProcessorNames } from "../../typings";
+import { ChorusEffectOptions, ChorusMessageCommandId, AudioWorkletProcessorNames, StrictMode } from "../../typings";
 
 export class Chorus extends Effector {
 
@@ -12,15 +12,19 @@ export class Chorus extends Effector {
     public rateHz: number = 1.5;
     public mix: number = 0.5;
     public feedback: number = 0.2;
+    public strictMode: StrictMode = StrictMode.Disabled;
 
-    constructor({ baseDelayMs, depthMs, rateHz, mix, feedback }: Partial<ChorusEffectOptions>) {
+    constructor({ baseDelayMs, depthMs, rateHz, mix, feedback, strictMode }: Partial<ChorusEffectOptions>) {
         super();
 
-        this.baseDelayMs = baseDelayMs ?? this.baseDelayMs;
-        this.depthMs = depthMs ?? this.depthMs;
-        this.rateHz = rateHz ?? this.rateHz;
-        this.mix = mix ?? this.mix;
-        this.feedback = feedback ?? this.feedback;
+        this.baseDelayMs = Math.max(0, CoerceFiniteNumber(baseDelayMs, this.baseDelayMs));
+        this.depthMs = Math.max(0, CoerceFiniteNumber(depthMs, this.depthMs));
+        this.rateHz = Math.max(0, CoerceFiniteNumber(rateHz, this.rateHz));
+        this.mix = Math.max(0, Math.min(1, CoerceFiniteNumber(mix, this.mix)));
+        this.feedback = Math.max(0, Math.min(1, CoerceFiniteNumber(feedback, this.feedback)));
+
+        const mode = CoerceFiniteNumber(strictMode, this.strictMode);
+        this.strictMode = mode === StrictMode.Enabled ? StrictMode.Enabled : StrictMode.Disabled;
     }
 
     public async InitializeOnAttachment(context: AudioContext): Promise<void> {
@@ -35,30 +39,36 @@ export class Chorus extends Effector {
             rateHz: this.rateHz,
             mix: this.mix,
             feedback: this.feedback,
+            strictMode: this.strictMode
         }
     }
 
     public SetBaseDelayMs(value: number): boolean {
+        value = Math.max(0, CoerceFiniteNumber(value, this.baseDelayMs));
         this.baseDelayMs = value;
         return SendMessageToWorklet<ChorusMessageCommandId, number>(this.audioWorkletNode, ChorusMessageCommandId.SetBaseDelayMs, value);
     }
 
     public SetDepthMs(value: number) {
+        value = Math.max(0, CoerceFiniteNumber(value, this.depthMs));
         this.depthMs = value;
         return SendMessageToWorklet<ChorusMessageCommandId, number>(this.audioWorkletNode, ChorusMessageCommandId.SetDepthMs, value);
     }
 
     public SetRateHz(value: number) {
+        value = Math.max(0, CoerceFiniteNumber(value, this.rateHz));
         this.rateHz = value;
         return SendMessageToWorklet<ChorusMessageCommandId, number>(this.audioWorkletNode, ChorusMessageCommandId.SetRateHz, value);
     }
 
     public SetMix(value: number) {
+        value = Math.max(0, Math.min(1, CoerceFiniteNumber(value, this.mix)));
         this.mix = value;
         return SendMessageToWorklet<ChorusMessageCommandId, number>(this.audioWorkletNode, ChorusMessageCommandId.SetMix, value);
     }
 
     public SetFeedback(value: number) {
+        value = Math.max(0, Math.min(1, CoerceFiniteNumber(value, this.feedback)));
         this.feedback = value;
         return SendMessageToWorklet<ChorusMessageCommandId, number>(this.audioWorkletNode, ChorusMessageCommandId.SetFeedback, value);
     }

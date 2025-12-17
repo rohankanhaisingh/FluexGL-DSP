@@ -39,6 +39,7 @@ export declare class AudioClip {
     ClearEventListeners(event?: keyof AudioClipEventMap): AudioClip;
     GetChannelData(channel?: number): Float32Array;
     Send(channel: Channel | Master): void;
+    Unsend(channel: Channel | Master): void;
     get currentPlaybackTime(): number;
     get duration(): number;
     get volume(): number;

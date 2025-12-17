@@ -51,6 +51,10 @@ export declare enum ProcessorIdentificationCodes {
     UnknownProcessorName = "UNKNOWN_PROCESSOR_NAME",
     UnknownProcessorCreationDate = "UNKNOWN_PROCESSOR_CREATION_DATE"
 }
+export declare enum StrictMode {
+    Disabled = 0,
+    Enabled = 1
+}
 export interface FluexGLAudioDebuggerOptions {
     breakOnError: boolean;
     showInfo: boolean;
@@ -110,19 +114,23 @@ export interface ChorusEffectOptions {
     rateHz: number;
     mix: number;
     feedback: number;
+    strictMode: StrictMode;
 }
 export interface LowPassFilterOptions {
     cutoff: number;
     minFrequency: number;
     q: number;
+    strictMode: StrictMode;
 }
 export interface SoftClipOptions {
     drive: number;
     gain: number;
+    strictMode: StrictMode;
 }
 export interface HardClipOptions {
     drive: number;
     gain: number;
+    strictMode: StrictMode;
 }
 export interface EffectorEventMap {
     "incoming-processor-message": (message: IncomingProcessorMessage) => void;

@@ -1,8 +1,8 @@
 import { Effector } from "../../../core/classes/Effector";
 
-import { SendMessageToWorklet, CreateAudioWorkletNode } from "../../../utilities/helpers";
+import { CoerceFiniteNumber, SendMessageToWorklet, CreateAudioWorkletNode } from "../../../utilities/helpers";
 
-import { LowPassFilterOptions, LowPassFilterMessageCommandId, AudioWorkletProcessorNames } from "../../../typings";
+import { LowPassFilterOptions, LowPassFilterMessageCommandId, AudioWorkletProcessorNames, StrictMode } from "../../../typings";
 
 export class LowPassFilter extends Effector {
 
@@ -12,33 +12,41 @@ export class LowPassFilter extends Effector {
     public cutoff: number = 1000;
     public q: number = 0.7;
     public minFrequency: number = 10;
+    public strictMode: StrictMode = StrictMode.Disabled;
 
-    constructor({ cutoff, minFrequency, q }: Partial<LowPassFilterOptions>) {
+    constructor({ cutoff, minFrequency, q, strictMode }: Partial<LowPassFilterOptions>) {
         super();
 
-        this.cutoff = cutoff ?? this.cutoff;
-        this.minFrequency = minFrequency ?? this.minFrequency;
-        this.q = q ?? this.q;
+        this.cutoff = CoerceFiniteNumber(cutoff, this.cutoff);
+        this.minFrequency = CoerceFiniteNumber(minFrequency, this.minFrequency);
+        this.q = CoerceFiniteNumber(q, this.q);
+
+        const mode = CoerceFiniteNumber(strictMode, this.strictMode);
+        this.strictMode = mode === StrictMode.Enabled ? StrictMode.Enabled : StrictMode.Disabled;
     }
 
     public async InitializeOnAttachment(context: AudioContext): Promise<void> {
 
         this.context = context;
         this.audioWorkletNode = CreateAudioWorkletNode(context, AudioWorkletProcessorNames.LowPassFilter, this.ReturnOptionsAsObject());
-        this.registerMessageEventListener(this.audioWorkletNode as AudioWorkletNode);
+        this.audioWorkletNode && this.registerMessageEventListener(this.audioWorkletNode);
     }
 
     public ReturnOptionsAsObject(): LowPassFilterOptions {
         return {
             cutoff: this.cutoff,
             minFrequency: this.minFrequency,
-            q: this.q
+            q: this.q,
+            strictMode: this.strictMode
         }
     }
 
     public SetCutoff(cutoff: number = 1000): boolean {
 
         if (!this.context) return false;
+
+        cutoff = CoerceFiniteNumber(cutoff, this.cutoff);
+        cutoff = Math.max(this.minFrequency, cutoff);
 
         if (cutoff >= this.context.sampleRate)
             cutoff = this.context.sampleRate;
@@ -49,6 +57,8 @@ export class LowPassFilter extends Effector {
 
     public SetMinFrequency(minFrequency: number = 10): boolean {
 
+        minFrequency = CoerceFiniteNumber(minFrequency, this.minFrequency);
+
         if (minFrequency < 10)
             minFrequency = 10;
 
@@ -57,6 +67,9 @@ export class LowPassFilter extends Effector {
     }
 
     public SetQ(q: number = 0.7): boolean {
+
+        q = CoerceFiniteNumber(q, this.q);
+        q = Math.max(0.0001, q);
 
         if(q > 4) 
             q = 4;

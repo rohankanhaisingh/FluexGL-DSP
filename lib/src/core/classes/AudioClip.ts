@@ -319,13 +319,24 @@ export class AudioClip {
 
     public Send(channel: Channel | Master) {
 
-        if(!channel.HasAudioClipPlayer()) return Debug.Error("Could not send AudioClip signal to channel, because the channel's AudioClipPlayer is undefined.", [
+        if (!channel.audioClipPlayer) return Debug.Error("Could not send AudioClip signal to channel, because the channel's AudioClipPlayer is undefined.", [
             "Make sure to initialize the Channel.",
             `Channel id: ${channel.id}.`,
             `AudioClip id: ${this.id}.`
         ]);
 
-        channel.AttachAudioClip(this);
+        channel.audioClipPlayer.AttachAudioClip(this);
+    }
+
+    public Unsend(channel: Channel | Master) {
+
+        if (!channel.audioClipPlayer) return Debug.Error("Could not unsend AudioClip signal to channel, because the channel's AudioClipPlayer is undefined.", [
+            "Make sure to initialize the Channel.",
+            `Channel id: ${channel.id}.`,
+            `AudioClip id: ${this.id}.`
+        ]);
+
+        channel.audioClipPlayer.DetachAudioClip(this);
     }
 
     public get currentPlaybackTime(): number {

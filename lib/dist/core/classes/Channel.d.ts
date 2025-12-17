@@ -1,3 +1,4 @@
+import { AudioClipPlayer } from "./AudioClipPlayer";
 import { AudioClip } from "./AudioClip";
 import { Master } from "./Master";
 import { Effector } from "./Effector";
@@ -11,8 +12,8 @@ export declare class Channel {
     output: AudioNode | null;
     effects: Effector[];
     context: AudioContext | null;
-    private sends;
-    private audioClipPlayer;
+    sends: Channel[];
+    audioClipPlayer: AudioClipPlayer | null;
     constructor(context: AudioContext);
     private rebuildEffectChain;
     AddEffect(effect: Effector): void;

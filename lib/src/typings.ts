@@ -60,6 +60,11 @@ export enum ProcessorIdentificationCodes {
     UnknownProcessorCreationDate = "UNKNOWN_PROCESSOR_CREATION_DATE"
 }
 
+export enum StrictMode {
+    Disabled = 0x00,
+    Enabled = 0x01
+}
+
 export interface FluexGLAudioDebuggerOptions {
     breakOnError: boolean;
     showInfo: boolean;
@@ -123,30 +128,32 @@ export interface DspPipelineInitializationState {
     workletBlobUrl: string;
 }
 
-// ======== Effect options ========
-
 export interface ChorusEffectOptions {
     baseDelayMs: number;
     depthMs: number;
     rateHz: number;
     mix: number;
     feedback: number;
+    strictMode: StrictMode;
 }
 
 export interface LowPassFilterOptions {
     cutoff: number;
     minFrequency: number;
     q: number;
+    strictMode: StrictMode;
 }
 
 export interface SoftClipOptions {
     drive: number;
     gain: number;
+    strictMode: StrictMode;
 }
 
 export interface HardClipOptions {
     drive: number;
     gain: number;
+    strictMode: StrictMode;
 }
 
 export interface EffectorEventMap {

@@ -42,5 +42,7 @@ export declare function LoadAudioSourceFromBlob(blob: Blob): Promise<AudioSource
 export declare function ConstructProcessorWorklet(code: string): string;
 export declare function LoadWorkletOnAudioDevice(audioDevice: AudioDevice, workletBlobUrl: string): Promise<boolean>;
 export declare function SendMessageToWorklet<T, K = any>(node: AudioWorkletNode | null, commandId: T, data: K): boolean;
+export declare function IsFiniteNumber(value: unknown): value is number;
+export declare function CoerceFiniteNumber(value: unknown, fallback: number): number;
 export declare function CreateAudioWorkletNode<T = any>(context: AudioContext, name: AudioWorkletProcessorNames | string, data: T): AudioWorkletNode | null;
 //# sourceMappingURL=helpers.d.ts.map

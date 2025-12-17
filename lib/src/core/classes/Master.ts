@@ -34,6 +34,8 @@ export class Master {
         this.input.connect(this.gainNode);
         this.gainNode.connect(this.analyserNode);
         this.analyserNode.connect(this.context.destination);
+
+        this.audioClipPlayer.Send(this);
     }
 
     private disconnectAudioNodes(): void {
@@ -77,7 +79,10 @@ export class Master {
             "Call .DetachEffect([effect Effector]) before attaching the effect."
         ]);
 
+        if(!this.context) return this.rebuildEffectChain();
+
         this.effects.push(effect);
+        effect.InitializeOnAttachment(this.context);
         this.rebuildEffectChain();
     }
 
@@ -90,7 +95,6 @@ export class Master {
         const self = this;
 
         this.effects.forEach(function (_effect: Effector, index: number) {
-
             if (effect.id === _effect.id) {
                 self.effects.splice(index, 1);
                 return;

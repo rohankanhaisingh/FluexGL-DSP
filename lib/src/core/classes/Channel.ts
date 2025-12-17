@@ -19,8 +19,8 @@ export class Channel {
     public effects: Effector[] = [];
     public context: AudioContext | null = null;
 
-    private sends: Channel[] = [];
-    private audioClipPlayer: AudioClipPlayer | null = null;
+    public sends: Channel[] = [];
+    public audioClipPlayer: AudioClipPlayer | null = null;
 
     constructor(context: AudioContext) {
         this.context = context;
@@ -56,9 +56,8 @@ export class Channel {
 
         this.input.disconnect();
 
-        for (const effect of this.effects) {
+        for (const effect of this.effects)
             effect.audioWorkletNode?.disconnect();
-        }
 
         const activeEffects = this.effects.filter(function (e: Effector): boolean {
             return !!e.audioWorkletNode;
@@ -72,8 +71,10 @@ export class Channel {
         this.input.connect(activeEffects[0].audioWorkletNode as AudioNode);
 
         for (let i: number = 0; i < activeEffects.length - 1; i++) {
+            
             const current = activeEffects[i].audioWorkletNode as AudioNode;
             const next = activeEffects[i + 1].audioWorkletNode as AudioNode;
+
             current.connect(next);
         }
 
@@ -94,9 +95,8 @@ export class Channel {
             return;
         }
 
-        effect.InitializeOnAttachment(this.context);
-
         this.effects.push(effect);
+        effect.InitializeOnAttachment(this.context);
         this.rebuildEffectChain();
     }
 
@@ -180,7 +180,7 @@ export class Channel {
 
     public Send(channel: Channel | Master) {
 
-        if (channel instanceof Master) 
+        if (channel instanceof Master)
             return (channel as Master).AttachChannel(this);
 
         if (channel.id === this.id) return Debug.Error("Could not link channel to itself.", [

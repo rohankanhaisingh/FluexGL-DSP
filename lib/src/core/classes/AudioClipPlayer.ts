@@ -47,9 +47,9 @@ export class AudioClipPlayer {
         })
     }
 
-    public Send(channel: Channel): void {
+    public Send(channel: Channel | Master): void {
 
-        if (!this.outputGainNode || !channel.input) return Debug.Error("Could not send AudioClipPlayer signal to a channel.");
+        if (!this.outputGainNode || !channel.input) return Debug.Error("Could not send AudioClipPlayer signal to a channel/master.");
 
         this.Unsend();
 

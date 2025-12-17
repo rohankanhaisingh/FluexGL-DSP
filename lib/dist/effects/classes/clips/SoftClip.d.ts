@@ -1,11 +1,12 @@
 import { Effector } from "../../../core/classes/Effector";
-import { SoftClipOptions } from "../../../typings";
+import { SoftClipOptions, StrictMode } from "../../../typings";
 export declare class SoftClip extends Effector {
     label: string | null;
     name: string;
     drive: number;
     gain: number;
-    constructor({ drive, gain }: Partial<SoftClipOptions>);
+    strictMode: StrictMode;
+    constructor({ drive, gain, strictMode }: Partial<SoftClipOptions>);
     InitializeOnAttachment(context: AudioContext): Promise<void>;
     ReturnOptionsAsObject(): SoftClipOptions;
     SetDrive(drive: number): boolean;

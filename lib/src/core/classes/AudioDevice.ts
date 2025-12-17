@@ -1,6 +1,7 @@
 import { v4 } from "uuid";
 
 import { Master } from "./Master";
+import { Channel } from "./Channel";
 
 import { ErrorCodes } from "../../console-codes";
 import { Debug } from "../../utilities/debugger";
@@ -41,5 +42,9 @@ export class AudioDevice {
 
     public GetContext(): AudioContext {
         return this.context;
+    }
+
+    public CreateChannel(): Channel {
+        return new Channel(this.context);
     }
 }

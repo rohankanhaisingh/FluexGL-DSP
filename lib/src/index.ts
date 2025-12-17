@@ -79,6 +79,16 @@ export {
     hasInitializedWasm,
 } from "./utilities/web-assembly";
 
+export {
+    StrictMode,
+    ProcessorIdentificationCodes,
+    HardClipMessageCommandId,
+    SoftClipMessageCommandId,
+    AudioWorkletProcessorNames,
+    ChorusMessageCommandId,
+    LowPassFilterMessageCommandId
+} from "./typings";
+
 export type {
     FluexGLAudioDescriptor,
     FluexGLAudioDebuggerOptions,
@@ -96,17 +106,11 @@ export type {
     DspPipelineInitializationState,
     ChorusEffectOptions,
     LowPassFilterOptions,
-    LowPassFilterMessageCommandId,
-    ChorusMessageCommandId,
-    AudioWorkletProcessorNames,
-    SoftClipMessageCommandId,
     SoftClipOptions,
-    HardClipMessageCommandId,
     HardClipOptions,
     EffectorEventMap,
     IncomingMessageType,
     IncomingProcessorMessage,
     ProcessorData,
-    ProcessorIdentificationCodes,
-    EffectorEvents
+    EffectorEvents,
 } from "./typings";

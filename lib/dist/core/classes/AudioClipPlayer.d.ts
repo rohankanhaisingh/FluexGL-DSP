@@ -11,7 +11,7 @@ export declare class AudioClipPlayer {
     constructor(context: AudioContext);
     AttachAudioClip(audioClip: AudioClip): void;
     DetachAudioClip(clip: AudioClip): void;
-    Send(channel: Channel): void;
+    Send(channel: Channel | Master): void;
     Unsend(): void;
     SetVolume(value: number): void;
     StopAll(): void;

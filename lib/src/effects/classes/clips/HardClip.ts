@@ -1,6 +1,6 @@
 import { Effector } from "../../../core/classes/Effector";
-import { CreateAudioWorkletNode, SendMessageToWorklet } from "../../../utilities/helpers";
-import { HardClipMessageCommandId, AudioWorkletProcessorNames, HardClipOptions } from "../../../typings";
+import { CoerceFiniteNumber, CreateAudioWorkletNode, SendMessageToWorklet } from "../../../utilities/helpers";
+import { HardClipMessageCommandId, AudioWorkletProcessorNames, HardClipOptions, StrictMode } from "../../../typings";
 
 export class HardClip extends Effector {
 
@@ -9,12 +9,16 @@ export class HardClip extends Effector {
 
     public drive: number = 1;
     public gain: number = 1;
+    public strictMode: StrictMode = StrictMode.Disabled;
 
-    constructor({ drive, gain }: Partial<HardClipOptions>) {
+    constructor({ drive, gain, strictMode }: Partial<HardClipOptions>) {
         super();
 
-        this.drive = drive ?? this.drive;
-        this.gain = gain ?? this.gain;
+        this.drive = Math.max(0, CoerceFiniteNumber(drive, this.drive));
+        this.gain = Math.max(0, CoerceFiniteNumber(gain, this.gain));
+
+        const mode = CoerceFiniteNumber(strictMode, this.strictMode);
+        this.strictMode = mode === StrictMode.Enabled ? StrictMode.Enabled : StrictMode.Disabled;
     }
 
     public async InitializeOnAttachment(context: AudioContext): Promise<void> {
@@ -25,16 +29,19 @@ export class HardClip extends Effector {
     public ReturnOptionsAsObject(): HardClipOptions {
         return {
             drive: this.drive,
-            gain: this.gain
+            gain: this.gain,
+            strictMode: this.strictMode
         }
     }
 
      public SetDrive(drive: number): boolean {
+        drive = Math.max(0, CoerceFiniteNumber(drive, this.drive));
         this.drive = drive;
         return SendMessageToWorklet<HardClipMessageCommandId, number>(this.audioWorkletNode, HardClipMessageCommandId.SetDrive, drive);
     }
 
     public SetGain(gain: number): boolean{
+        gain = Math.max(0, CoerceFiniteNumber(gain, this.gain));
         this.gain = gain;
         return SendMessageToWorklet<HardClipMessageCommandId, number>(this.audioWorkletNode, HardClipMessageCommandId.SetGain, gain);
     }

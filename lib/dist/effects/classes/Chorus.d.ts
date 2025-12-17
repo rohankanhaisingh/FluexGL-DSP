@@ -1,5 +1,5 @@
 import { Effector } from "../../core/classes/Effector";
-import { ChorusEffectOptions } from "../../typings";
+import { ChorusEffectOptions, StrictMode } from "../../typings";
 export declare class Chorus extends Effector {
     label: string | null;
     name: string;
@@ -8,7 +8,8 @@ export declare class Chorus extends Effector {
     rateHz: number;
     mix: number;
     feedback: number;
-    constructor({ baseDelayMs, depthMs, rateHz, mix, feedback }: Partial<ChorusEffectOptions>);
+    strictMode: StrictMode;
+    constructor({ baseDelayMs, depthMs, rateHz, mix, feedback, strictMode }: Partial<ChorusEffectOptions>);
     InitializeOnAttachment(context: AudioContext): Promise<void>;
     ReturnOptionsAsObject(): ChorusEffectOptions;
     SetBaseDelayMs(value: number): boolean;

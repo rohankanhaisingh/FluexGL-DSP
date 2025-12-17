@@ -1,12 +1,13 @@
 import { Effector } from "../../../core/classes/Effector";
-import { LowPassFilterOptions } from "../../../typings";
+import { LowPassFilterOptions, StrictMode } from "../../../typings";
 export declare class LowPassFilter extends Effector {
     name: string;
     label: string | null;
     cutoff: number;
     q: number;
     minFrequency: number;
-    constructor({ cutoff, minFrequency, q }: Partial<LowPassFilterOptions>);
+    strictMode: StrictMode;
+    constructor({ cutoff, minFrequency, q, strictMode }: Partial<LowPassFilterOptions>);
     InitializeOnAttachment(context: AudioContext): Promise<void>;
     ReturnOptionsAsObject(): LowPassFilterOptions;
     SetCutoff(cutoff?: number): boolean;

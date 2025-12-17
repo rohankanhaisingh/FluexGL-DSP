@@ -235,31 +235,55 @@ export function SendMessageToWorklet<T, K = any>(node: AudioWorkletNode | null, 
 
     if (!node) return false;
 
+    if (typeof data === "number" && !Number.isFinite(data)) {
+        Debug.Warn("Refusing to send non-finite numeric value to AudioWorkletNode.", [
+            `Command: ${String(commandId)}`,
+            `Value: ${String(data)}`
+        ]);
+        return false;
+    }
+
     node.port.postMessage({ commandId, data });
 
     return true;
 }
 
+export function IsFiniteNumber(value: unknown): value is number {
+    return typeof value === "number" && Number.isFinite(value);
+}
+
+export function CoerceFiniteNumber(value: unknown, fallback: number): number {
+    return IsFiniteNumber(value) ? value : fallback;
+}
+
 export function CreateAudioWorkletNode<T = any>(context: AudioContext, name: AudioWorkletProcessorNames | string, data: T) {
 
     if (!compiledWebAssemblyModule) {
-        
         Debug.Error("Failed to create audio worklet node, because the web assembly module has not been compiled properly.", [
             `Request audio worklet node: ${name}.`
         ]);
         return null;
     }
 
-    return new AudioWorkletNode(context, name, {
-        numberOfInputs: 1,
-        numberOfOutputs: 1,
-        outputChannelCount: [2],
-        parameterData: {
-            ...data,
-            sampleRate: context.sampleRate
-        },
-        processorOptions: {
-            module: compiledWebAssemblyModule
-        }
-    })
+    try {
+        return new AudioWorkletNode(context, name, {
+            numberOfInputs: 1,
+            numberOfOutputs: 1,
+            outputChannelCount: [2],
+            parameterData: {
+                ...data,
+                sampleRate: context.sampleRate
+            },
+            processorOptions: {
+                module: compiledWebAssemblyModule
+            }
+        });
+    } catch (err) {
+        Debug.Error("Failed to create audio worklet node.", [
+            `Request audio worklet node: ${name}.`,
+            "Make sure you called InitializeDspPipeline/InitializeDpsPipeline and loaded the worklet module on the same AudioContext.",
+            String(err)
+        ]);
+        return null;
+    }
 }
