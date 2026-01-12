@@ -7,6 +7,7 @@ import { Channel } from "./Channel";
 import { AudioClipPlayer } from "./AudioClipPlayer";
 import { Master } from "./Master";
 import { DSP } from "../../index";
+import { ErrorCodes } from "lib/src/console-codes";
 
 type ProgressPayload = Parameters<AudioClipEventMap["progress"]>[0];
 
@@ -87,7 +88,7 @@ export class AudioClip {
         if (!audioClipPlayer.context) return Debug.Error("Could not initialize AudioClip, because the AudioClipPlayer somehow has no audio context.", [
             `AudioClipPlayer id: ${audioClipPlayer.id}`,
             `AudioClip id: ${this.id}`
-        ]);
+        ], ErrorCodes.AUDIO_CLIP_PLAYER_NO_CONTEXT);
 
         this.audioClipPlayer = audioClipPlayer;
         this.context = audioClipPlayer.context;
@@ -209,11 +210,7 @@ export class AudioClip {
 
         if (!this.context) Debug.Error("Could not set volume because the context (AudioContext) of this AudioClip is undefined.", [
             "Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .SetVolume() on this AudioClip.",
-        ]);
-
-        if (!this.gainNode) Debug.Error("Could not set volume because the gainNode (GainNode) of this AudioClip is undefined.", [
-            "Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .SetVolume() on this AudioClip.",
-        ]);
+        ], ErrorCodes.AUDIO_CLIP_PLAYER_NO_CONTEXT);
 
         this.gainNode?.gain.setValueAtTime(volume, this.context?.currentTime ?? 0);
         return this;
@@ -223,16 +220,12 @@ export class AudioClip {
 
         if (!this.context) Debug.Error("Could not set volume because the context (AudioContext) of this AudioClip is undefined.", [
             "Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .SetPanLevel() on this AudioClip.",
-        ]);
-
-        if (!this.stereoPannerNode) Debug.Error("Could not set volume because the stereoPannerNode (StereoPannerNode) of this AudioClip is undefined.", [
-            "Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .SetPanLevel() on this AudioClip.",
-        ]);
+        ], ErrorCodes.AUDIO_CLIP_PLAYER_NO_CONTEXT);
 
         if (panLevel < -1 || panLevel > 1) Debug.Error("Could not set the pan level because it is not between -1 and 1.", [
             `Given value: ${panLevel}.`,
             `Accepts a value between -1 and 1. Can be a floating number.`
-        ]);
+        ], ErrorCodes.PANNING_OUT_OF_RANGE);
 
         this.stereoPannerNode?.pan.setValueAtTime(panLevel, this.context?.currentTime ?? 0);
         return this;

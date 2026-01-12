@@ -261,7 +261,7 @@ export function CreateAudioWorkletNode<T = any>(context: AudioContext, name: Aud
     if (!compiledWebAssemblyModule) {
         Debug.Error("Failed to create audio worklet node, because the web assembly module has not been compiled properly.", [
             `Request audio worklet node: ${name}.`
-        ]);
+        ], ErrorCodes.WORKLET_NO_WASM_MODULE_INSTANTIATED);
         return null;
     }
 

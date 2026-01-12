@@ -5,6 +5,7 @@ import { Debug } from "../../utilities/debugger";
 import { Effector } from "./Effector";
 import { AudioClipPlayer } from "./AudioClipPlayer";
 import { AudioClip } from "./AudioClip";
+import { ErrorCodes } from "lib/src/console-codes";
 
 export class Master {
 
@@ -77,7 +78,7 @@ export class Master {
 
         if (this.effects.includes(effect)) return Debug.Error("Could not attach the effect because it is already part of this master channel.", [
             "Call .DetachEffect([effect Effector]) before attaching the effect."
-        ]);
+        ], ErrorCodes.EFFECT_ALREADY_ATTACHED);
 
         if(!this.context) return this.rebuildEffectChain();
 
@@ -90,7 +91,7 @@ export class Master {
 
         if (!this.effects.includes(effect)) return Debug.Error("Could not detach the effect because it is not part of this master channel.", [
             "Call .AttachEffect([effect Effector]) before detaching the effect."
-        ]);
+        ], ErrorCodes.EFFECT_NOT_FOUND);
 
         const self = this;
 
@@ -108,7 +109,7 @@ export class Master {
 
         if (this.channels.includes(channel)) return Debug.Error("Could not attach the channel because it is already part of this master channel.", [
             "Call .DetachChannel([channel Channel]) before attaching the channel."
-        ]);
+        ], ErrorCodes.CHANNEL_ALREADY_ATTACHED);
 
         this.channels.push(channel);
 
@@ -122,7 +123,7 @@ export class Master {
 
         if (!this.channels.includes(channel)) return Debug.Error("Could not detach the channel because it is not part of this master channel.", [
             "Call .AttachChannel([channel Channel]) before detaching the channel."
-        ]);
+        ], ErrorCodes.CHANNEL_NOT_FOUND);
 
         if (channel.output && this.input)
             channel.output.disconnect(this.input);

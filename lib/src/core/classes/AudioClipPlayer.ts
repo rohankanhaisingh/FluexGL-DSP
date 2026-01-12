@@ -4,6 +4,7 @@ import { AudioClip } from "./AudioClip";
 import { Debug } from "../../utilities/debugger";
 import { Channel } from "./Channel";
 import { Master } from "./Master";
+import { ErrorCodes } from "lib/src/console-codes";
 
 export class AudioClipPlayer {
 
@@ -25,7 +26,7 @@ export class AudioClipPlayer {
 
         if (this.audioClips.includes(audioClip)) return Debug.Error("Could not attach audio clip because it is already part of this channel", [
             "Call .DetachAudioClip([clip AudioClip]) before attaching audio clip."
-        ]);
+        ], ErrorCodes.AUDIO_CLIP_ALREADY_ATTACHED);
 
         audioClip.Initialize(this);
         this.audioClips.push(audioClip);
@@ -35,7 +36,7 @@ export class AudioClipPlayer {
 
         if (!this.audioClips.includes(clip)) return Debug.Error("Could not detach audio clip because it is not part of this channel", [
             "Call .AttachAudioClip([clip AudioClip]) before detaching audio clip."
-        ]);
+        ], ErrorCodes.AUDIO_CLIP_NOT_FOUND);
 
         clip.Stop();
 
