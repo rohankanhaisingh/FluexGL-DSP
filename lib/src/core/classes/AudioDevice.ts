@@ -16,7 +16,7 @@ export class AudioDevice {
     public masterChannel: Master = new Master(this.context);
     public masterChannels: Master[] = [];
 
-    constructor(public deviceInfo: MediaDeviceInfo) { }
+    constructor(public deviceInfo: MediaDeviceInfo) {};
 
     public GetMasterChannel(): Master {
         return this.masterChannel;
@@ -44,7 +44,7 @@ export class AudioDevice {
         return this.context;
     }
 
-    public CreateChannel(): Channel {
-        return new Channel(this.context);
+    public CreateChannel(label?: string): Channel {
+        return new Channel(this.context, label);
     }
 }

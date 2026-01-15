@@ -103,4 +103,12 @@ export class AudioClipPlayer {
     public SetLabel(label: string): void {
         this.label = label;
     }
+
+    public get length(): number {
+        return this.audioClips.length;
+    }
+
+    public get volume(): number {
+        return this.outputGainNode?.gain.value ?? 0;
+    }
 }

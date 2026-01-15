@@ -4,7 +4,7 @@ import { AudioClipPlayer } from "./AudioClipPlayer";
 import { AudioClip } from "./AudioClip";
 import { Master } from "./Master";
 import { Effector } from "./Effector";
-import { ErrorCodes } from "lib/src/console-codes";
+import { ErrorCodes } from "../../console-codes";
 
 export class Channel {
 
@@ -23,8 +23,9 @@ export class Channel {
     public sends: Channel[] = [];
     public audioClipPlayer: AudioClipPlayer | null = null;
 
-    constructor(context: AudioContext) {
+    constructor(context: AudioContext, label?: string) {
         this.context = context;
+        this.label = label ?? this.label;
 
         this.disconnectAudioNodes(true);
 
@@ -235,16 +236,34 @@ export class Channel {
     public UnsendToAllChannels() {
 
         for (var i: number = 0; i < this.sends.length; i++) {
-
             this.Unsend(this.sends[i]);
             i--;
         }
     }
 
-    public AttachAudioClip(audioClip: AudioClip) {
+    public AttachAudioClip(audioClip: AudioClip): Channel {
 
-        if (!this.audioClipPlayer) return Debug.Error("Cannot not link AudioClip to this channel because this channel's AudioClipPlayer is undefined.");
+        if (!this.audioClipPlayer) throw Error("Cannot not link AudioClip to this channel because this channel's AudioClipPlayer is undefined.");
 
         this.audioClipPlayer.AttachAudioClip(audioClip);
+        return this;
+    }
+
+    public Volume(volume?: number): number {
+
+        if(!this.context) throw new Error("Could not set volume on channel, because it's context is undefined.");
+        if(!this.gainNode) throw new Error("Could not set volume on channel, because it's GainNode is undefined.")
+
+        volume && this.gainNode.gain.setValueAtTime(volume, this.context.currentTime);
+        return volume ?? this.gainNode.gain.value;
+    }
+
+    public Pan(pan?: number): number {
+        
+        if(!this.context) throw new Error("Could not set pan on channel, because it's context is undefined.");
+        if(!this.stereoPannerNode) throw new Error("Cannot set pan on channel, because it's StereoPannerNode is undefined.");
+
+        pan && this.stereoPannerNode.pan.setValueAtTime(pan, this.context.currentTime);
+        return pan ?? this.stereoPannerNode.pan.value;
     }
 }

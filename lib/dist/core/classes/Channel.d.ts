@@ -14,7 +14,7 @@ export declare class Channel {
     context: AudioContext | null;
     sends: Channel[];
     audioClipPlayer: AudioClipPlayer | null;
-    constructor(context: AudioContext);
+    constructor(context: AudioContext, label?: string);
     private rebuildEffectChain;
     AddEffect(effect: Effector): void;
     AttachEffect(effect: Effector): void;
@@ -27,6 +27,8 @@ export declare class Channel {
     Unsend(channel: Channel | Master): void;
     HasAudioClipPlayer(): boolean;
     UnsendToAllChannels(): void;
-    AttachAudioClip(audioClip: AudioClip): void;
+    AttachAudioClip(audioClip: AudioClip): Channel;
+    Volume(volume?: number): number;
+    Pan(pan?: number): number;
 }
 //# sourceMappingURL=Channel.d.ts.map

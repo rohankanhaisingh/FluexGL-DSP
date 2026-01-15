@@ -17,5 +17,7 @@ export declare class AudioClipPlayer {
     StopAll(): void;
     Dispose(): void;
     SetLabel(label: string): void;
+    get length(): number;
+    get volume(): number;
 }
 //# sourceMappingURL=AudioClipPlayer.d.ts.map

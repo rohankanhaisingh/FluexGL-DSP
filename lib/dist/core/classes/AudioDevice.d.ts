@@ -12,6 +12,6 @@ export declare class AudioDevice {
     SetMasterChannel(channel: Master): void;
     CreateMasterChannel(): Master;
     GetContext(): AudioContext;
-    CreateChannel(): Channel;
+    CreateChannel(label?: string): Channel;
 }
 //# sourceMappingURL=AudioDevice.d.ts.map
