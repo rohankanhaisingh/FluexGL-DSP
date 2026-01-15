@@ -7,7 +7,7 @@ import { Channel } from "./Channel";
 import { AudioClipPlayer } from "./AudioClipPlayer";
 import { Master } from "./Master";
 import { DSP } from "../../index";
-import { ErrorCodes } from "lib/src/console-codes";
+import { ErrorCodes } from "../../console-codes";
 
 type ProgressPayload = Parameters<AudioClipEventMap["progress"]>[0];
 

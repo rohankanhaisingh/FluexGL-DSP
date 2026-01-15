@@ -1,6 +1,6 @@
 {
     "name": "@fluex/fluexgl-dsp",
-    "version": "0.4.3",
+    "version": "0.4.4",
     "description": "An open-source, web-based DSP library developed alongside FluexGL, designed for creating and manipulating sounds in various contexts.",
     "main": "lib/dist/index.js",
     "types": "lib/dist/index.d.ts",

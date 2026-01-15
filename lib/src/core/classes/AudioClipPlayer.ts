@@ -4,7 +4,7 @@ import { AudioClip } from "./AudioClip";
 import { Debug } from "../../utilities/debugger";
 import { Channel } from "./Channel";
 import { Master } from "./Master";
-import { ErrorCodes } from "lib/src/console-codes";
+import { ErrorCodes } from "../../console-codes";
 
 export class AudioClipPlayer {
 

@@ -5,7 +5,7 @@ import { Debug } from "../../utilities/debugger";
 import { Effector } from "./Effector";
 import { AudioClipPlayer } from "./AudioClipPlayer";
 import { AudioClip } from "./AudioClip";
-import { ErrorCodes } from "lib/src/console-codes";
+import { ErrorCodes } from "../../console-codes";
 
 export class Master {
 

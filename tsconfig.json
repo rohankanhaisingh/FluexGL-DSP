@@ -8,7 +8,7 @@
     "composite": true,
     "declaration": true,
     "declarationMap": true,
-    "allowJs": true,
+    "allowJs": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": false,
@@ -17,15 +17,10 @@
     "types": [],
     "baseUrl": ".",
   },
-  "include": [
-    "lib/src/**/*.ts",
-    "lib/src/**/*.tsx",
-    "lib/src/**/*.json",
-    "lib/src/**/*.d.ts"
-  ],
   "exclude": [
-    "lib/test",
+    "./lib/test",
     "node_modules",
-    "scripts"
+    "scripts",
+    "./lib/dist",
   ]
 }
