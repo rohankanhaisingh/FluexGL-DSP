@@ -234,7 +234,6 @@ export class Channel {
     }
 
     public UnsendToAllChannels() {
-
         for (var i: number = 0; i < this.sends.length; i++) {
             this.Unsend(this.sends[i]);
             i--;
@@ -265,5 +264,25 @@ export class Channel {
 
         pan && this.stereoPannerNode.pan.setValueAtTime(pan, this.context.currentTime);
         return pan ?? this.stereoPannerNode.pan.value;
+    }
+
+    public GetEffectsByLabel(label: string): Effector[] {
+        return this.effects.filter(effect => effect.label === label);
+    }
+
+    public GetFirstEffectByLabel(label: string): Effector | null {
+        
+        const filteredEffects: Effector[] = this.effects.filter(effect => effect.label === label);
+        return filteredEffects.length > 0 ? filteredEffects[0] : null;
+    }
+
+    public GetEffectById(id: string): Effector[] {
+        return this.effects.filter(effect => effect.id === id);
+    }
+
+    public GetFirstEffectById(id: string): Effector | null {
+
+        const filteredEffects: Effector[] = this.effects.filter(effect => effect.id === id);
+        return filteredEffects.length > 0 ? filteredEffects[0] : null;
     }
 }

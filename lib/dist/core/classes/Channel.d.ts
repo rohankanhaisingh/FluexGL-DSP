@@ -30,5 +30,9 @@ export declare class Channel {
     AttachAudioClip(audioClip: AudioClip): Channel;
     Volume(volume?: number): number;
     Pan(pan?: number): number;
+    GetEffectsByLabel(label: string): Effector[];
+    GetFirstEffectByLabel(label: string): Effector | null;
+    GetEffectById(id: string): Effector[];
+    GetFirstEffectById(id: string): Effector | null;
 }
 //# sourceMappingURL=Channel.d.ts.map
