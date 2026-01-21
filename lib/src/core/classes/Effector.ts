@@ -1,6 +1,6 @@
 import { v4 } from "uuid";
 
-import { IncomingProcessorMessage, IncomingMessageType, EffectorEvents, EffectorEventMap } from "../../typings";
+import { IncomingProcessorMessage, type EffectorEvents, EffectorEventMap } from "../../typings";
 import { Debug } from "../../utilities/debugger";
 
 export abstract class Effector {
@@ -41,6 +41,7 @@ export abstract class Effector {
     protected registerMessageEventListener(node: AudioWorkletNode) {
         if (this.hasRegisteredMessageEventListener) return;
 
+        this.hasRegisteredMessageEventListener = true;
         node.port.onmessage = this.handleIncomingMessages.bind(this);
         Debug.Log(`Succesfully registered event listener on effector ${this.name} (${this.label}) [${this.id}]`);
     }
