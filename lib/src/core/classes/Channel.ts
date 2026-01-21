@@ -134,6 +134,16 @@ export class Channel {
         return false;
     }
 
+    /**
+     * Public method to manually rebuild the effect chain.
+     * Can be useful when the automatic rebuilt did not
+     * work properly.
+     * @returns 
+     */
+    public RebuildEffectChain() {
+        return this.rebuildEffectChain();
+    }
+
     public AddEffect(effect: Effector): Channel {
 
         if (!this.context)
@@ -355,5 +365,9 @@ export class Channel {
             toIndex = toIndex - 1;
 
         this.effects.splice(toIndex, 0, item);
+
+        // Initializing the effect is unnessecary because it should have been intialized already
+        // otherwise it could not been found. Rebuilding the effect chain is nessecary though.
+        this.rebuildEffectChain();
     }
 }

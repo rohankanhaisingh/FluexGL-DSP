@@ -22,8 +22,12 @@ export class SoftClip extends Effector {
     }
 
     public async InitializeOnAttachment(context: AudioContext): Promise<void> {
-        this.context = context;
-        this.audioWorkletNode = CreateAudioWorkletNode<SoftClipOptions>(context, AudioWorkletProcessorNames.SoftClip, this.ReturnOptionsAsObject());
+    
+        if(this.context === null) 
+            this.context = context;
+        
+        if(this.audioWorkletNode === null) 
+            this.audioWorkletNode = CreateAudioWorkletNode<SoftClipOptions>(context, AudioWorkletProcessorNames.SoftClip, this.ReturnOptionsAsObject());
     }
 
     public ReturnOptionsAsObject(): SoftClipOptions {
