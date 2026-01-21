@@ -2,6 +2,7 @@ import { AudioClipPlayer } from "./AudioClipPlayer";
 import { AudioClip } from "./AudioClip";
 import { Master } from "./Master";
 import { Effector } from "./Effector";
+import { ArrayPosition } from "../../typings";
 export declare class Channel {
     id: string;
     label: string;
@@ -16,13 +17,15 @@ export declare class Channel {
     audioClipPlayer: AudioClipPlayer | null;
     constructor(context: AudioContext, label?: string);
     private rebuildEffectChain;
-    AddEffect(effect: Effector): void;
-    AttachEffect(effect: Effector): void;
-    RemoveEffect(effect: Effector): void;
-    DetachEffect(effect: Effector): void;
     private disconnectAudioNodes;
     private isInitialized;
     private isReachable;
+    AddEffect(effect: Effector): Channel;
+    AttachEffect(effect: Effector): Channel;
+    RemoveEffect(effect: Effector): void;
+    RemoveAllEffects(): void;
+    DetachEffect(effect: Effector): void;
+    DetachAllEffects(): void;
     Send(channel: Channel | Master): void;
     Unsend(channel: Channel | Master): void;
     HasAudioClipPlayer(): boolean;
@@ -34,5 +37,6 @@ export declare class Channel {
     GetFirstEffectByLabel(label: string): Effector | null;
     GetEffectById(id: string): Effector[];
     GetFirstEffectById(id: string): Effector | null;
+    MoveEffectToIndex(effect: Effector, index: number | ArrayPosition): void;
 }
 //# sourceMappingURL=Channel.d.ts.map

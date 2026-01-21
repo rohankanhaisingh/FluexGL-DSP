@@ -11,7 +11,7 @@ export class SoftClip extends Effector {
     public gain: number = 1;
     public strictMode: StrictMode = StrictMode.Disabled;
 
-    constructor({ drive, gain, strictMode }: Partial<SoftClipOptions>) {
+    constructor({ drive, gain, strictMode }: Partial<SoftClipOptions> = {}) {
         super();
 
         this.drive = Math.max(0, CoerceFiniteNumber(drive, this.drive));

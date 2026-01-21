@@ -8,7 +8,7 @@ import { DspOptions } from "./typings";
 export const DSP: DspOptions = {
     maxMasterChannels: 8,
     maxTotalChannels: 128,
-    sampleRate: 44000,
+    sampleRate: 41000,
     spatialization: "stereo",
     overrideMaxAudioBufferNodes: false,
     debugger: {
@@ -80,7 +80,7 @@ export {
     SoftClipMessageCommandId,
     AudioWorkletProcessorNames,
     ChorusMessageCommandId,
-    LowPassFilterMessageCommandId
+    LowPassFilterMessageCommandId,
 } from "./typings";
 
 export type {
@@ -106,4 +106,5 @@ export type {
     IncomingProcessorMessage,
     ProcessorData,
     EffectorEvents,
+    ArrayPosition
 } from "./typings";

@@ -1,10 +1,12 @@
 import { v4 } from "uuid";
+
 import { Debug } from "../../utilities/debugger";
 import { AudioClipPlayer } from "./AudioClipPlayer";
 import { AudioClip } from "./AudioClip";
 import { Master } from "./Master";
 import { Effector } from "./Effector";
 import { ErrorCodes } from "../../console-codes";
+import { ArrayPosition } from "../../typings";
 
 export class Channel {
 
@@ -73,7 +75,7 @@ export class Channel {
         this.input.connect(activeEffects[0].audioWorkletNode as AudioNode);
 
         for (let i: number = 0; i < activeEffects.length - 1; i++) {
-            
+
             const current = activeEffects[i].audioWorkletNode as AudioNode;
             const next = activeEffects[i + 1].audioWorkletNode as AudioNode;
 
@@ -81,54 +83,6 @@ export class Channel {
         }
 
         (activeEffects[activeEffects.length - 1].audioWorkletNode as AudioNode).connect(this.stereoPannerNode);
-    }
-
-    public AddEffect(effect: Effector): void {
-
-        if (!this.context) {
-            Debug.Error("Could not add effect because this channel has no AudioContext.");
-            return;
-        }
-
-        if (this.effects.includes(effect)) {
-            Debug.Error("Could not add effect because it is already part of this channel", [
-                "Call .RemoveEffect([effect Effector]) before adding effect."
-            ], ErrorCodes.EFFECT_ALREADY_ATTACHED);
-            return;
-        }
-
-        this.effects.push(effect);
-        effect.InitializeOnAttachment(this.context);
-        this.rebuildEffectChain();
-    }
-
-    public AttachEffect(effect: Effector): void {
-        return this.AddEffect(effect);
-    }
-
-    public RemoveEffect(effect: Effector): void {
-
-        if (!this.effects.includes(effect)) {
-            Debug.Error("Could not remove effect, because it is not part of this channel.", [
-                "Call .AddEffect([effect Effector]) before removing effect."
-            ], ErrorCodes.EFFECT_NOT_FOUND);
-            return;
-        }
-
-        const self: Channel = this;
-
-        this.effects.forEach(function (_effect: Effector, index: number): void {
-            if (effect.id === _effect.id)
-                self.effects.splice(index, 1);
-        });
-
-        effect.audioWorkletNode?.disconnect();
-
-        this.rebuildEffectChain();
-    }
-
-    public DetachEffect(effect: Effector): void {
-        return this.RemoveEffect(effect);
     }
 
     private disconnectAudioNodes(gc?: boolean) {
@@ -178,6 +132,59 @@ export class Channel {
         }
 
         return false;
+    }
+
+    public AddEffect(effect: Effector): Channel {
+
+        if (!this.context)
+            throw new Error(`Could not add effect (${effect.id}), to channel (${this.id}), because the channel's AudioContext is undefined.`);
+
+        if (this.effects.includes(effect))
+            throw new Error(`Could not add effect (${effect.id}), to channel (${this.id}), because it has already been added to the channel.`);
+
+        this.effects.push(effect);
+        effect.InitializeOnAttachment(this.context);
+        this.rebuildEffectChain();
+        return this;
+    }
+
+    public AttachEffect(effect: Effector): Channel {
+        return this.AddEffect(effect);
+    }
+
+    public RemoveEffect(effect: Effector): void {
+
+        if (!this.effects.includes(effect)) {
+            Debug.Error("Could not remove effect, because it is not part of this channel.", [
+                "Call .AddEffect([effect Effector]) before removing effect."
+            ], ErrorCodes.EFFECT_NOT_FOUND);
+            return;
+        }
+
+        const self: Channel = this;
+
+        this.effects.forEach(function (_effect: Effector, index: number): void {
+            if (effect.id === _effect.id)
+                self.effects.splice(index, 1);
+        });
+
+        effect.audioWorkletNode?.disconnect();
+
+        this.rebuildEffectChain();
+    }
+
+    public RemoveAllEffects() {
+        for (const effect of this.effects) {
+            this.RemoveEffect(effect);
+        }
+    }
+
+    public DetachEffect(effect: Effector): void {
+        return this.RemoveEffect(effect);
+    }
+
+    public DetachAllEffects() {
+        return this.RemoveAllEffects();
     }
 
     public Send(channel: Channel | Master) {
@@ -250,17 +257,17 @@ export class Channel {
 
     public Volume(volume?: number): number {
 
-        if(!this.context) throw new Error("Could not set volume on channel, because it's context is undefined.");
-        if(!this.gainNode) throw new Error("Could not set volume on channel, because it's GainNode is undefined.")
+        if (!this.context) throw new Error("Could not set volume on channel, because it's context is undefined.");
+        if (!this.gainNode) throw new Error("Could not set volume on channel, because it's GainNode is undefined.")
 
         volume && this.gainNode.gain.setValueAtTime(volume, this.context.currentTime);
         return volume ?? this.gainNode.gain.value;
     }
 
     public Pan(pan?: number): number {
-        
-        if(!this.context) throw new Error("Could not set pan on channel, because it's context is undefined.");
-        if(!this.stereoPannerNode) throw new Error("Cannot set pan on channel, because it's StereoPannerNode is undefined.");
+
+        if (!this.context) throw new Error("Could not set pan on channel, because it's context is undefined.");
+        if (!this.stereoPannerNode) throw new Error("Cannot set pan on channel, because it's StereoPannerNode is undefined.");
 
         pan && this.stereoPannerNode.pan.setValueAtTime(pan, this.context.currentTime);
         return pan ?? this.stereoPannerNode.pan.value;
@@ -271,9 +278,9 @@ export class Channel {
     }
 
     public GetFirstEffectByLabel(label: string): Effector | null {
-        
+
         const filteredEffects: Effector[] = this.effects.filter(effect => effect.label === label);
-        return filteredEffects.length > 0 ? filteredEffects[0] : null;
+        return filteredEffects.length !== 0 ? filteredEffects[0] : null;
     }
 
     public GetEffectById(id: string): Effector[] {
@@ -283,6 +290,70 @@ export class Channel {
     public GetFirstEffectById(id: string): Effector | null {
 
         const filteredEffects: Effector[] = this.effects.filter(effect => effect.id === id);
-        return filteredEffects.length > 0 ? filteredEffects[0] : null;
+        return filteredEffects.length !== 0 ? filteredEffects[0] : null;
+    }
+
+    public MoveEffectToIndex(effect: Effector, index: number | ArrayPosition): void {
+
+        let fromIndex: number = -1,
+            matches: number = 0,
+            i: number = 0;
+
+        for (i = 0; i < this.effects.length; i++) {
+            if (this.effects[i].id === effect.id) {
+                if (fromIndex === -1)
+                    fromIndex = i;
+
+                matches++;
+            }
+        }
+
+        if (matches === 0) throw new Error(
+            "Effect '" + effect.id + "' (" + effect.label + ") could not be found. " +
+            "The effect ID may have changed, or the effect is not attached to this channel."
+        );
+
+        if (matches > 1) throw new Error(
+            "Multiple effects with the ID '" + effect.id + "' are attached to this channel. " +
+            "Make sure every effect has a unique ID."
+        );
+
+        let toIndex: number;
+
+        if (typeof index === "number") {
+            toIndex = index;
+        } else {
+            switch (index) {
+                case "start":
+                    toIndex = 0;
+                    break;
+                case "end":
+                    toIndex = this.effects.length - 1;
+                    break;
+                case "one-after-start":
+                    toIndex = 1;
+                    break;
+                case "one-before-end":
+                    toIndex = this.effects.length - 2;
+                    break;
+                default:
+                    throw new Error("Invalid ArrayPosition: " + String(index));
+            }
+        }
+
+        if (toIndex < 0)
+            toIndex = 0;
+
+        if (toIndex >= this.effects.length)
+            toIndex = this.effects.length - 1;
+
+        if (fromIndex === toIndex) return;
+
+        const item: Effector = this.effects.splice(fromIndex, 1)[0];
+
+        if (fromIndex < toIndex)
+            toIndex = toIndex - 1;
+
+        this.effects.splice(toIndex, 0, item);
     }
 }

@@ -2,6 +2,7 @@ export declare type ChannelSpatialization = "mono" | "stereo" | "surround";
 export declare type AudioClipAnalyserType = "pre" | "post";
 export declare type AudioClipAnalyserProperty = "fftSize" | "minDecibels" | "maxDecibels" | "smoothingTimeConstant";
 export declare type IncomingMessageType = "message" | "error" | "warning" | "wasm-instantiated";
+export declare type ArrayPosition = "start" | "middle" | "end" | "one-after-start" | "one-before-end";
 export declare type AudioClipEvents = {
     [K in keyof AudioClipEventMap]: AudioClipEventMap[K][];
 };

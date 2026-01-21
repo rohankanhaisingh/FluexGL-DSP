@@ -6,7 +6,7 @@ export declare class SoftClip extends Effector {
     drive: number;
     gain: number;
     strictMode: StrictMode;
-    constructor({ drive, gain, strictMode }: Partial<SoftClipOptions>);
+    constructor({ drive, gain, strictMode }?: Partial<SoftClipOptions>);
     InitializeOnAttachment(context: AudioContext): Promise<void>;
     ReturnOptionsAsObject(): SoftClipOptions;
     SetDrive(drive: number): boolean;
