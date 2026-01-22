@@ -20,6 +20,7 @@ export class AudioClip {
     public isPlaying: boolean = false;
     public startTime: number = 0;
     public offsetAtStart: number = 0;
+    public playbackRate: number = 1;
 
     public progressUpdateSpeed: number = 20;
 
@@ -49,6 +50,7 @@ export class AudioClip {
         const bufferSource = context.createBufferSource();
         bufferSource.buffer = this.data.audioBuffer;
         bufferSource.loop = this.loop;
+        bufferSource.playbackRate.setValueAtTime(this.playbackRate, this.context.currentTime);
 
         return bufferSource;
     }
@@ -334,6 +336,21 @@ export class AudioClip {
         ]);
 
         channel.audioClipPlayer.DetachAudioClip(this);
+    }
+
+    public SetPlaybackRateInSemitones(semitones: number): AudioClip {
+
+        if(!this.context) 
+            throw new Error("Could not set playback rate because the AudioContext is not defined.");
+
+        const calculatedPlaybackRate: number = Math.pow(2, semitones / 12);
+    
+        for(const buffer of this.audioBufferSourceNodes) {
+            buffer.playbackRate.setValueAtTime(calculatedPlaybackRate, this.context?.currentTime);
+        }
+
+        this.playbackRate = calculatedPlaybackRate;
+        return this;
     }
 
     public get currentPlaybackTime(): number {
