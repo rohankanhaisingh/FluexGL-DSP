@@ -9,8 +9,10 @@ export class Analyser extends Effector {
 
     public analyserNode: AnalyserNode | null = null;
 
-    public float32ArrayBuffer = new Float32Array();
-    public uint8ArrayBuffer = new Uint8Array();
+    public waveformFloat32ArrayBuffer = new Float32Array();
+    public waveformUint8ArrayBuffer = new Uint8Array();
+    public frequencyFloat32ArrayBuffer = new Float32Array();
+    public frequencyUint8ArrayBuffer = new Uint8Array();
 
     private options: AnalyserOptions = {
         fftSize: 32,
@@ -62,23 +64,41 @@ export class Analyser extends Effector {
 
         if (!this.analyserNode) return null;
 
-        this.analyserNode.getFloatTimeDomainData(this.float32ArrayBuffer);
-        return this.float32ArrayBuffer;
+        this.analyserNode.getFloatTimeDomainData(this.waveformFloat32ArrayBuffer);
+        return this.waveformFloat32ArrayBuffer;
     }
 
     public GetWaveformByteData(): Uint8Array | null {
 
         if (!this.analyserNode) return null;
 
-        this.analyserNode.getByteTimeDomainData(this.uint8ArrayBuffer);
-        return this.uint8ArrayBuffer;
+        this.analyserNode.getByteTimeDomainData(this.waveformUint8ArrayBuffer);
+        return this.waveformUint8ArrayBuffer;
+    }
+
+    public GetFrequencyFloatData(): Float32Array | null {
+
+        if(!this.analyserNode) return null;
+
+        this.analyserNode.getFloatFrequencyData(this.frequencyFloat32ArrayBuffer);
+        return this.frequencyFloat32ArrayBuffer;
+    }
+
+    public GetFrequencyByteData(): Uint8Array | null {
+
+        if(!this.analyserNode) return null;
+
+        this.analyserNode.getByteFrequencyData(this.frequencyUint8ArrayBuffer);
+        return this.frequencyUint8ArrayBuffer;
     }
 
     private allocateBuffers(): void {
 
         if (!this.analyserNode) return;
 
-        this.float32ArrayBuffer = new Float32Array(this.analyserNode.fftSize);
-        this.uint8ArrayBuffer = new Uint8Array(this.analyserNode.fftSize);
+        this.waveformFloat32ArrayBuffer = new Float32Array(this.analyserNode.fftSize);
+        this.waveformUint8ArrayBuffer = new Uint8Array(this.analyserNode.fftSize);
+        this.frequencyFloat32ArrayBuffer = new Float32Array(this.analyserNode.fftSize);
+        this.frequencyUint8ArrayBuffer = new Uint8Array(this.analyserNode.fftSize);
     }
 }
