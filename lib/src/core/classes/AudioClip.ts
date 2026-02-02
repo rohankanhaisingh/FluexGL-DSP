@@ -123,9 +123,9 @@ export class AudioClip {
         this.offsetAtStart = actualOffset;
         this.isPlaying = true;
 
-        if (this.progressInterval) clearInterval(this.progressInterval);
+        if (this.progressInterval) window.clearInterval(this.progressInterval);
 
-        if (this.isPlaying) this.progressInterval = setInterval(function () {
+        if (this.isPlaying) this.progressInterval = window.setInterval(function () {
 
             if (!self.isPlaying) return;
 

@@ -151,6 +151,13 @@ export interface HighPassFilterOptions {
     strictMode: StrictMode;
 }
 
+export interface NotchFilterOptions {
+    cutoff: number;
+    q: number;
+    minFrequency: number;
+    strictMode: StrictMode;
+}
+
 export interface SoftClipOptions {
     drive: number;
     gain: number;
