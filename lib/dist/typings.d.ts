@@ -14,6 +14,11 @@ export declare enum LowPassFilterMessageCommandId {
     SetMinFrequency = 1,
     SetQ = 2
 }
+export declare enum HighPassFilterMessageCommandId {
+    SetCutoff = 0,
+    SetMaxFrequency = 1,
+    SetQ = 2
+}
 export declare enum ChorusMessageCommandId {
     SetBaseDelayMs = 0,
     SetDepthMs = 1,
@@ -115,6 +120,12 @@ export interface LowPassFilterOptions {
     cutoff: number;
     minFrequency: number;
     q: number;
+    strictMode: StrictMode;
+}
+export interface HighPassFilterOptions {
+    cutoff: number;
+    q: number;
+    maxFrequency: number;
     strictMode: StrictMode;
 }
 export interface SoftClipOptions {

@@ -40,7 +40,8 @@ export {
     RoomReverb,
     SoftClip,
     LowPassFilter,
-    HardClip
+    HardClip,
+    HighPassFilter
 } from "./effects/exports";
 
 export {
@@ -66,7 +67,8 @@ export {
 } from "./utilities/helpers";
 
 export {
-    SUPPORTED_FILE_TYPES
+    SUPPORTED_FILE_TYPES,
+    DEFAULT_SAMPLE_RATE
 } from "./utilities/constants";
 
 export {
@@ -106,5 +108,5 @@ export type {
     IncomingProcessorMessage,
     ProcessorData,
     EffectorEvents,
-    ArrayPosition
+    ArrayPosition,
 } from "./typings";

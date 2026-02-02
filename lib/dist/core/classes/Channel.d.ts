@@ -20,6 +20,13 @@ export declare class Channel {
     private disconnectAudioNodes;
     private isInitialized;
     private isReachable;
+    /**
+     * Public method to manually rebuild the effect chain.
+     * Can be useful when the automatic rebuilt did not
+     * work properly.
+     * @returns
+     */
+    RebuildEffectChain(): void;
     AddEffect(effect: Effector): Channel;
     AttachEffect(effect: Effector): Channel;
     RemoveEffect(effect: Effector): void;

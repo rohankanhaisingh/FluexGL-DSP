@@ -10,6 +10,7 @@ export declare class AudioClip {
     isPlaying: boolean;
     startTime: number;
     offsetAtStart: number;
+    playbackRate: number;
     progressUpdateSpeed: number;
     gainNode: GainNode | null;
     stereoPannerNode: StereoPannerNode | null;
@@ -40,6 +41,7 @@ export declare class AudioClip {
     GetChannelData(channel?: number): Float32Array;
     Send(channel: Channel | Master): void;
     Unsend(channel: Channel | Master): void;
+    SetPlaybackRateInSemitones(semitones: number): AudioClip;
     get currentPlaybackTime(): number;
     get duration(): number;
     get volume(): number;

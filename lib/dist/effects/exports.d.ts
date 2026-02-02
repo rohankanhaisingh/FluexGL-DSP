@@ -19,4 +19,5 @@ export { GenericReverb } from "./classes/reverbs/GenericReverb";
 export { HallReverb } from "./classes/reverbs/HallReverb";
 export { RoomReverb } from "./classes/reverbs/RoomReverb";
 export { LowPassFilter } from "./classes/filters/LowPassFilter";
+export { HighPassFilter } from "./classes/filters/HighPassFilter";
 //# sourceMappingURL=exports.d.ts.map

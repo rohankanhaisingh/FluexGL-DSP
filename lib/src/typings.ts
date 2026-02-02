@@ -4,7 +4,6 @@ export type AudioClipAnalyserProperty = "fftSize" | "minDecibels" | "maxDecibels
 export type IncomingMessageType = "message" | "error" | "warning" | "wasm-instantiated";
 export type ArrayPosition = "start" | "middle" | "end" | "one-after-start" | "one-before-end";
 
-
 export type AudioClipEvents = {
     [K in keyof AudioClipEventMap]: AudioClipEventMap[K][];
 }
@@ -16,6 +15,12 @@ export type EffectorEvents = {
 export enum LowPassFilterMessageCommandId {
     SetCutoff,
     SetMinFrequency,
+    SetQ
+}
+
+export enum HighPassFilterMessageCommandId {
+    SetCutoff,
+    SetMaxFrequency,
     SetQ
 }
 
@@ -136,6 +141,13 @@ export interface LowPassFilterOptions {
     cutoff: number;
     minFrequency: number;
     q: number;
+    strictMode: StrictMode;
+}
+
+export interface HighPassFilterOptions {
+    cutoff: number;
+    q: number;
+    maxFrequency: number;
     strictMode: StrictMode;
 }
 

@@ -7,3 +7,5 @@ export const SUPPORTED_FILE_TYPES: string[] = [
     "audio/wave",
     "audio/webm"
 ];
+
+export const DEFAULT_SAMPLE_RATE: number = 44100;

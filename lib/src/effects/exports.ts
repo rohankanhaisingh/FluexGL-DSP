@@ -23,3 +23,4 @@ export { HallReverb } from "./classes/reverbs/HallReverb";
 export { RoomReverb } from "./classes/reverbs/RoomReverb";
 
 export { LowPassFilter } from "./classes/filters/LowPassFilter";
+export { HighPassFilter } from "./classes/filters/HighPassFilter";
