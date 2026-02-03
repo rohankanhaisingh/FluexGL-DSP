@@ -24,6 +24,12 @@ export enum HighPassFilterMessageCommandId {
     SetQ
 }
 
+export enum NotchFilterMessageCommandId {
+    SetCutoff,
+    SetMinFrequency,
+    SetQ
+}
+
 export enum ChorusMessageCommandId {
     SetBaseDelayMs,
     SetDepthMs,

@@ -19,6 +19,11 @@ export declare enum HighPassFilterMessageCommandId {
     SetMaxFrequency = 1,
     SetQ = 2
 }
+export declare enum NotchFilterMessageCommandId {
+    SetCutoff = 0,
+    SetMinFrequency = 1,
+    SetQ = 2
+}
 export declare enum ChorusMessageCommandId {
     SetBaseDelayMs = 0,
     SetDepthMs = 1,
