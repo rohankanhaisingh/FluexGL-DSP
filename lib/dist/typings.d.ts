@@ -1,12 +1,12 @@
-export declare type ChannelSpatialization = "mono" | "stereo" | "surround";
-export declare type AudioClipAnalyserType = "pre" | "post";
-export declare type AudioClipAnalyserProperty = "fftSize" | "minDecibels" | "maxDecibels" | "smoothingTimeConstant";
-export declare type IncomingMessageType = "message" | "error" | "warning" | "wasm-instantiated";
-export declare type ArrayPosition = "start" | "middle" | "end" | "one-after-start" | "one-before-end";
-export declare type AudioClipEvents = {
+export type ChannelSpatialization = "mono" | "stereo" | "surround";
+export type AudioClipAnalyserType = "pre" | "post";
+export type AudioClipAnalyserProperty = "fftSize" | "minDecibels" | "maxDecibels" | "smoothingTimeConstant";
+export type IncomingMessageType = "message" | "error" | "warning" | "wasm-instantiated";
+export type ArrayPosition = "start" | "middle" | "end" | "one-after-start" | "one-before-end";
+export type AudioClipEvents = {
     [K in keyof AudioClipEventMap]: AudioClipEventMap[K][];
 };
-export declare type EffectorEvents = {
+export type EffectorEvents = {
     [K in keyof EffectorEventMap]: EffectorEventMap[K][];
 };
 export declare enum LowPassFilterMessageCommandId {
