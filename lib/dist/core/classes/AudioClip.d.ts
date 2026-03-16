@@ -18,12 +18,14 @@ export declare class AudioClip {
     audioClipPlayer: AudioClipPlayer | null;
     private audioBufferSourceNodes;
     private maxAudioBufferSourceNodes;
+    private audioClipPlayers;
     private progressInterval;
     private events;
     constructor(data: AudioSourceData);
     private createBufferSource;
     private connectSourcesTo;
     private safeDisconnect;
+    private getOutputNodes;
     private rebuildNodeChain;
     Initialize(audioClipPlayer: AudioClipPlayer): void;
     Play(timestamp?: number, offset?: number): void | this | null;
@@ -41,6 +43,7 @@ export declare class AudioClip {
     GetChannelData(channel?: number): Float32Array;
     Send(channel: Channel | Master): void;
     Unsend(channel: Channel | Master): void;
+    DetachFromAudioClipPlayer(audioClipPlayer: AudioClipPlayer): void;
     SetPlaybackRateInSemitones(semitones: number): AudioClip;
     get currentPlaybackTime(): number;
     get duration(): number;

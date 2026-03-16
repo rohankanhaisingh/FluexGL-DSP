@@ -38,14 +38,12 @@ export class AudioClipPlayer {
             "Call .AttachAudioClip([clip AudioClip]) before detaching audio clip."
         ], ErrorCodes.AUDIO_CLIP_NOT_FOUND);
 
-        clip.Stop();
+        const idx = this.audioClips.indexOf(clip);
 
-        const self = this;
+        if (idx >= 0)
+            this.audioClips.splice(idx, 1);
 
-        this.audioClips.forEach(function (_clip: AudioClip, index: number) {
-            if (clip.id === _clip.id)
-                return self.audioClips.splice(index, 1);
-        })
+        clip.DetachFromAudioClipPlayer(this);
     }
 
     public Send(channel: Channel | Master): void {

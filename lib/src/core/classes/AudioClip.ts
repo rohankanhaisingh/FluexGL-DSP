@@ -32,6 +32,7 @@ export class AudioClip {
 
     private audioBufferSourceNodes: AudioBufferSourceNode[] = [];
     private maxAudioBufferSourceNodes: number = 1;
+    private audioClipPlayers: AudioClipPlayer[] = [];
 
     private progressInterval: number | null = 0;
 
@@ -66,20 +67,39 @@ export class AudioClip {
         node?.disconnect();
     }
 
+    private getOutputNodes(): AudioNode[] {
+
+        const nodes: AudioNode[] = [];
+
+        for (const player of this.audioClipPlayers) {
+            if (player.outputGainNode && !nodes.includes(player.outputGainNode))
+                nodes.push(player.outputGainNode);
+        }
+
+        return nodes;
+    }
+
     private rebuildNodeChain(): boolean {
 
-        if (!this.context || !this.gainNode || !this.stereoPannerNode || !this.audioClipPlayer || !this.audioClipPlayer.outputGainNode) {
+        if (!this.context || !this.gainNode || !this.stereoPannerNode) {
             Debug.Error("Failed to rebuild node chain, because some of the core AudioNodes are missing.");
             return false;
         }
 
-        const destination = this.audioClipPlayer.outputGainNode;
+        const destinations = this.getOutputNodes();
+
+        if (destinations.length === 0) {
+            Debug.Error("Failed to rebuild node chain, because no output destinations are available.");
+            return false;
+        }
 
         this.safeDisconnect(this.gainNode);
         this.safeDisconnect(this.stereoPannerNode);
 
         this.gainNode.connect(this.stereoPannerNode);
-        this.stereoPannerNode.connect(destination);
+        for (const destination of destinations) {
+            this.stereoPannerNode.connect(destination);
+        }
 
         this.connectSourcesTo(this.gainNode);
         return true;
@@ -92,11 +112,23 @@ export class AudioClip {
             `AudioClip id: ${this.id}`
         ], ErrorCodes.AUDIO_CLIP_PLAYER_NO_CONTEXT);
 
+        if (this.context && this.context !== audioClipPlayer.context) {
+            return Debug.Error("Could not initialize AudioClip, because the AudioClipPlayer does not share the same AudioContext.", [
+                `AudioClipPlayer id: ${audioClipPlayer.id}`,
+                `AudioClip id: ${this.id}`
+            ], ErrorCodes.AUDIO_CLIP_PLAYER_NO_CONTEXT);
+        }
+
         this.audioClipPlayer = audioClipPlayer;
         this.context = audioClipPlayer.context;
 
-        this.gainNode = new GainNode(this.context);
-        this.stereoPannerNode = new StereoPannerNode(this.context);
+        if (!this.gainNode) this.gainNode = new GainNode(this.context);
+        if (!this.stereoPannerNode) this.stereoPannerNode = new StereoPannerNode(this.context);
+
+        if (!this.audioClipPlayers.includes(audioClipPlayer))
+            this.audioClipPlayers.push(audioClipPlayer);
+
+        this.rebuildNodeChain();
     }
 
     public Play(timestamp?: number, offset?: number) {
@@ -336,6 +368,26 @@ export class AudioClip {
         ]);
 
         channel.audioClipPlayer.DetachAudioClip(this);
+    }
+
+    public DetachFromAudioClipPlayer(audioClipPlayer: AudioClipPlayer): void {
+
+        const idx = this.audioClipPlayers.indexOf(audioClipPlayer);
+
+        if (idx === -1) return;
+
+        this.audioClipPlayers.splice(idx, 1);
+
+        if (this.audioClipPlayer === audioClipPlayer) {
+            this.audioClipPlayer = this.audioClipPlayers[0] ?? null;
+        }
+
+        if (this.audioClipPlayers.length === 0) {
+            this.Stop();
+            return;
+        }
+
+        this.rebuildNodeChain();
     }
 
     public SetPlaybackRateInSemitones(semitones: number): AudioClip {
