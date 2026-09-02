@@ -11,6 +11,9 @@ export declare class AudioClip {
     startTime: number;
     offsetAtStart: number;
     playbackRate: number;
+    pitch: number;
+    minPitchSemitones: number;
+    maxPitchSemitones: number;
     progressUpdateSpeed: number;
     gainNode: GainNode | null;
     stereoPannerNode: StereoPannerNode | null;
@@ -44,6 +47,9 @@ export declare class AudioClip {
     send(channel: Channel | Master): void;
     unsend(channel: Channel | Master): void;
     detachFromAudioClipPlayer(audioClipPlayer: AudioClipPlayer): void;
+    setPitch(semitones: number): AudioClip;
+    resetPitch(): AudioClip;
+    /** @deprecated Use {@link setPitch} instead. */
     setPlaybackRateInSemitones(semitones: number): AudioClip;
     get currentPlaybackTime(): number;
     get duration(): number;

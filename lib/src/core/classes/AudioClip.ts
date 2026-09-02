@@ -21,6 +21,10 @@ export class AudioClip {
     public startTime: number = 0;
     public offsetAtStart: number = 0;
     public playbackRate: number = 1;
+    public pitch: number = 0;
+
+    public minPitchSemitones: number = -24;
+    public maxPitchSemitones: number = 24;
 
     public progressUpdateSpeed: number = 20;
 
@@ -390,19 +394,35 @@ export class AudioClip {
         this.rebuildNodeChain();
     }
 
-    public setPlaybackRateInSemitones(semitones: number): AudioClip {
+    public setPitch(semitones: number): AudioClip {
 
-        if(!this.context) 
-            throw new Error("Could not set playback rate because the AudioContext is not defined.");
+        if (!this.context) Debug.Error("Could not set pitch because the context (AudioContext) of this AudioClip is undefined.", [
+            "Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .setPitch() on this AudioClip.",
+        ], ErrorCodes.AUDIO_CLIP_PLAYER_NO_CONTEXT);
+
+        if (semitones < this.minPitchSemitones || semitones > this.maxPitchSemitones) Debug.Error("Could not set the pitch because it is not within the allowed semitone range.", [
+            `Given value: ${semitones}.`,
+            `Accepts a value between ${this.minPitchSemitones} and ${this.maxPitchSemitones} semitones.`
+        ], ErrorCodes.PITCH_OUT_OF_RANGE);
 
         const calculatedPlaybackRate: number = Math.pow(2, semitones / 12);
-    
-        for(const buffer of this.audioBufferSourceNodes) {
-            buffer.playbackRate.setValueAtTime(calculatedPlaybackRate, this.context?.currentTime);
+
+        for (const buffer of this.audioBufferSourceNodes) {
+            buffer.playbackRate.setValueAtTime(calculatedPlaybackRate, this.context?.currentTime ?? 0);
         }
 
+        this.pitch = semitones;
         this.playbackRate = calculatedPlaybackRate;
         return this;
+    }
+
+    public resetPitch(): AudioClip {
+        return this.setPitch(0);
+    }
+
+    /** @deprecated Use {@link setPitch} instead. */
+    public setPlaybackRateInSemitones(semitones: number): AudioClip {
+        return this.setPitch(semitones);
     }
 
     public get currentPlaybackTime(): number {
