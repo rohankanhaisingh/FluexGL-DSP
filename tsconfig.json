@@ -4,7 +4,6 @@
     "outDir": "./lib/dist",
     "module": "es2022",
     "target": "es2022",
-    "moduleResolution": "node",
     "composite": true,
     "declaration": true,
     "declarationMap": true,
@@ -13,8 +12,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": false,
     "strict": true,
-    "skipLibCheck": true,
-    "baseUrl": ".",
+    "skipLibCheck": true
   },
   "exclude": [
     "./lib/test",

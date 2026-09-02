@@ -3,10 +3,10 @@ export declare class Analyser extends Effector {
     label: string | null;
     name: string;
     analyserNode: AnalyserNode | null;
-    waveformFloat32ArrayBuffer: Float32Array;
-    waveformUint8ArrayBuffer: Uint8Array;
-    frequencyFloat32ArrayBuffer: Float32Array;
-    frequencyUint8ArrayBuffer: Uint8Array;
+    waveformFloat32ArrayBuffer: Float32Array<ArrayBuffer>;
+    waveformUint8ArrayBuffer: Uint8Array<ArrayBuffer>;
+    frequencyFloat32ArrayBuffer: Float32Array<ArrayBuffer>;
+    frequencyUint8ArrayBuffer: Uint8Array<ArrayBuffer>;
     private options;
     constructor(options?: Partial<AnalyserOptions>);
     InitializeOnAttachment(context: AudioContext): Promise<void>;

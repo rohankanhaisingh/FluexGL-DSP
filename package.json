@@ -31,6 +31,7 @@
         "mime": "^4.1.0",
         "terser": "^5.44.0",
         "truncate": "^3.0.0",
+        "typescript": "^7.0.2",
         "uuid": "^13.0.0"
     },
     "devDependencies": {
