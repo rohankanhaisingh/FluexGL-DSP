@@ -21,16 +21,16 @@ export class SoftClip extends Effector {
         this.strictMode = mode === StrictMode.Enabled ? StrictMode.Enabled : StrictMode.Disabled;
     }
 
-    public async InitializeOnAttachment(context: AudioContext): Promise<void> {
+    public async initializeOnAttachment(context: AudioContext): Promise<void> {
     
         if(this.context === null) 
             this.context = context;
         
         if(this.audioWorkletNode === null) 
-            this.audioWorkletNode = CreateAudioWorkletNode<SoftClipOptions>(context, AudioWorkletProcessorNames.SoftClip, this.ReturnOptionsAsObject());
+            this.audioWorkletNode = CreateAudioWorkletNode<SoftClipOptions>(context, AudioWorkletProcessorNames.SoftClip, this.returnOptionsAsObject());
     }
 
-    public ReturnOptionsAsObject(): SoftClipOptions {
+    public returnOptionsAsObject(): SoftClipOptions {
         return {
             drive: this.drive,
             gain: this.gain,
@@ -38,13 +38,13 @@ export class SoftClip extends Effector {
         }
     }
 
-    public SetDrive(drive: number): boolean {
+    public setDrive(drive: number): boolean {
         drive = Math.max(0, CoerceFiniteNumber(drive, this.drive));
         this.drive = drive;
         return SendMessageToWorklet<SoftClipMessageCommandId, number>(this.audioWorkletNode, SoftClipMessageCommandId.SetDrive, drive);
     }
 
-    public SetGain(gain: number): boolean{
+    public setGain(gain: number): boolean{
         gain = Math.max(0, CoerceFiniteNumber(gain, this.gain));
         this.gain = gain;
         return SendMessageToWorklet<SoftClipMessageCommandId, number>(this.audioWorkletNode, SoftClipMessageCommandId.SetGain, gain);

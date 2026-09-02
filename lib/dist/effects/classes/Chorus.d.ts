@@ -10,12 +10,12 @@ export declare class Chorus extends Effector {
     feedback: number;
     strictMode: StrictMode;
     constructor({ baseDelayMs, depthMs, rateHz, mix, feedback, strictMode }: Partial<ChorusEffectOptions>);
-    InitializeOnAttachment(context: AudioContext): Promise<void>;
-    ReturnOptionsAsObject(): ChorusEffectOptions;
-    SetBaseDelayMs(value: number): boolean;
-    SetDepthMs(value: number): boolean;
-    SetRateHz(value: number): boolean;
-    SetMix(value: number): boolean;
-    SetFeedback(value: number): boolean;
+    initializeOnAttachment(context: AudioContext): Promise<void>;
+    returnOptionsAsObject(): ChorusEffectOptions;
+    setBaseDelayMs(value: number): boolean;
+    setDepthMs(value: number): boolean;
+    setRateHz(value: number): boolean;
+    setMix(value: number): boolean;
+    setFeedback(value: number): boolean;
 }
 //# sourceMappingURL=Chorus.d.ts.map

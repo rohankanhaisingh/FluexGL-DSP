@@ -56,12 +56,12 @@ export class DspPipeline {
 
     /**
      * Initializes the DSP pipeline.
-     * This is a convenience wrapper around {@link InitializeDpsPipeline}.
+     * This is a convenience wrapper around {@link initializeDpsPipeline}.
      *
      * @returns A promise resolving to `true` if the initialization succeeded, otherwise `false`.
      */
-    public async Init(): Promise<boolean> {
-        return await this.InitializeDpsPipeline();
+    public async init(): Promise<boolean> {
+        return await this.initializeDpsPipeline();
     }
 
     /**
@@ -71,7 +71,7 @@ export class DspPipeline {
      *
      * @returns A promise resolving to `true` when initialization completes successfully, otherwise `false`.
      */
-    public async InitializeDpsPipeline(): Promise<boolean> {
+    public async initializeDpsPipeline(): Promise<boolean> {
         Debug.Log("Attempting to initialize DSP pipeline...");
 
         const start: number = Date.now();
@@ -120,13 +120,13 @@ export class DspPipeline {
      * @returns A promise that resolves with the default {@link AudioDevice} instance,
      * or `null` if no default device was found or initialization failed.
      */
-    public async ResolveDefaultAudioOutputDevice() {
+    public async resolveDefaultAudioOutputDevice() {
         Debug.Log("Attempting to resolve default audio output device...");
 
         if (!this.hasInitialized || !this.blobUrl) {
             Debug.Error(
                 "Could not resolve default audio output device, because the required blob URL has not been created.",
-                ["Call await .InitializeDpsPipeline() before resolving default audio output device."]
+                ["Call await .initializeDpsPipeline() before resolving default audio output device."]
             );
             return null;
         }
@@ -151,7 +151,7 @@ export class DspPipeline {
         return defaultAudioDevice;
     }
 
-    public TellMeWhatTheFuckThisWholeLibraryActuallyDoes() {
+    public tellMeWhatTheFuckThisWholeLibraryActuallyDoes() {
         return `I wanted to create a web based game and implement advanced audio, but javascript is slow so that's why this library uses Web Assembly. You dont have to use it, unless you know what the fuck you're doing. If you do, god bless you.`
     }
 }

@@ -105,7 +105,7 @@ export class AudioClip {
         return true;
     }
 
-    public Initialize(audioClipPlayer: AudioClipPlayer) {
+    public initialize(audioClipPlayer: AudioClipPlayer) {
 
         if (!audioClipPlayer.context) return Debug.Error("Could not initialize AudioClip, because the AudioClipPlayer somehow has no audio context.", [
             `AudioClipPlayer id: ${audioClipPlayer.id}`,
@@ -131,10 +131,10 @@ export class AudioClip {
         this.rebuildNodeChain();
     }
 
-    public Play(timestamp?: number, offset?: number) {
+    public play(timestamp?: number, offset?: number) {
 
         if (!this.context) return Debug.Error("Could not play audio clip, because context (AudioContext) is undefined.", [
-            "Make sure to attach this AudioClip to an AudioClipPlayer instance, before calling .Play on this AudioClip."
+            "Make sure to attach this AudioClip to an AudioClipPlayer instance, before calling .play on this AudioClip."
         ]);
 
         const context = this.context;
@@ -200,10 +200,10 @@ export class AudioClip {
         return this;
     }
 
-    public Seek(seconds: number) {
+    public seek(seconds: number) {
 
         if (!this.context) return Debug.Error("Could not seek because the context (AudioContext) of this AudioClip is undefined.", [
-            `Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .Seek on this AudioClip.`,
+            `Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .seek on this AudioClip.`,
             `AudioClip id: ${this.id}`
         ]);
 
@@ -216,13 +216,13 @@ export class AudioClip {
             return this;
         }
 
-        this.Stop();
-        this.Play(undefined, clamped);
+        this.stop();
+        this.play(undefined, clamped);
 
         return this;
     }
 
-    public Stop(): AudioClip | null {
+    public stop(): AudioClip | null {
 
         this.audioBufferSourceNodes.forEach(function (node: AudioBufferSourceNode) {
             node.stop();
@@ -240,20 +240,20 @@ export class AudioClip {
         return this;
     }
 
-    public SetVolume(volume: number): AudioClip {
+    public setVolume(volume: number): AudioClip {
 
         if (!this.context) Debug.Error("Could not set volume because the context (AudioContext) of this AudioClip is undefined.", [
-            "Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .SetVolume() on this AudioClip.",
+            "Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .setVolume() on this AudioClip.",
         ], ErrorCodes.AUDIO_CLIP_PLAYER_NO_CONTEXT);
 
         this.gainNode?.gain.setValueAtTime(volume, this.context?.currentTime ?? 0);
         return this;
     }
 
-    public SetPanLevel(panLevel: number): AudioClip {
+    public setPanLevel(panLevel: number): AudioClip {
 
         if (!this.context) Debug.Error("Could not set volume because the context (AudioContext) of this AudioClip is undefined.", [
-            "Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .SetPanLevel() on this AudioClip.",
+            "Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .setPanLevel() on this AudioClip.",
         ], ErrorCodes.AUDIO_CLIP_PLAYER_NO_CONTEXT);
 
         if (panLevel < -1 || panLevel > 1) Debug.Error("Could not set the pan level because it is not between -1 and 1.", [
@@ -265,7 +265,7 @@ export class AudioClip {
         return this;
     }
 
-    public Loop(loop?: boolean): AudioClip {
+    public setLoop(loop?: boolean): AudioClip {
 
         this.audioBufferSourceNodes.forEach(function (node: AudioBufferSourceNode) {
             node.loop = loop ?? true;
@@ -275,7 +275,7 @@ export class AudioClip {
         return this;
     }
 
-    public SetMaxAudioBufferSourceNodes(value: number): AudioClip {
+    public setMaxAudioBufferSourceNodes(value: number): AudioClip {
 
         if (!DSP.overrideMaxAudioBufferNodes) {
             Debug.Warn("Cannot set maxAudioBufferSourceNodes because the option to override the current maximum value is disabled.", [
@@ -288,7 +288,7 @@ export class AudioClip {
         return this;
     }
 
-    public DisconnectAllAudioBufferSourceNodes(): boolean {
+    public disconnectAllAudioBufferSourceNodes(): boolean {
 
         if (!this.context) return false;
 
@@ -302,25 +302,25 @@ export class AudioClip {
         return true;
     }
 
-    public AddEventListener<K extends keyof AudioClipEventMap>(event: K, cb: AudioClipEventMap[K]): () => void {
+    public addEventListener<K extends keyof AudioClipEventMap>(event: K, cb: AudioClipEventMap[K]): () => void {
 
         this.events[event].push(cb);
-        return () => this.RemoveEventListener(event, cb);
+        return () => this.removeEventListener(event, cb);
     }
 
-    public Once<K extends keyof AudioClipEventMap>(event: K, cb: AudioClipEventMap[K]): () => void {
+    public once<K extends keyof AudioClipEventMap>(event: K, cb: AudioClipEventMap[K]): () => void {
 
         const wrapper = ((...args: unknown[]) => {
 
             // @ts-ignore
             cb(...args);
-            this.RemoveEventListener(event, wrapper as unknown as AudioClipEventMap[K]);
+            this.removeEventListener(event, wrapper as unknown as AudioClipEventMap[K]);
         }) as unknown as AudioClipEventMap[K];
 
-        return this.AddEventListener(event, wrapper);
+        return this.addEventListener(event, wrapper);
     }
 
-    public RemoveEventListener<K extends keyof AudioClipEventMap>(event: K, cb: AudioClipEventMap[K]): AudioClip {
+    public removeEventListener<K extends keyof AudioClipEventMap>(event: K, cb: AudioClipEventMap[K]): AudioClip {
 
         const arr = this.events[event];
 
@@ -333,7 +333,7 @@ export class AudioClip {
         return this;
     }
 
-    public ClearEventListeners(event?: keyof AudioClipEventMap): AudioClip {
+    public clearEventListeners(event?: keyof AudioClipEventMap): AudioClip {
 
         if (event) {
             this.events[event].length = 0;
@@ -344,11 +344,11 @@ export class AudioClip {
         return this;
     }
 
-    public GetChannelData(channel: number = 0): Float32Array {
+    public getChannelData(channel: number = 0): Float32Array {
         return this.data.audioBuffer.getChannelData(channel);
     }
 
-    public Send(channel: Channel | Master) {
+    public send(channel: Channel | Master) {
 
         if (!channel.audioClipPlayer) return Debug.Error("Could not send AudioClip signal to channel, because the channel's AudioClipPlayer is undefined.", [
             "Make sure to initialize the Channel.",
@@ -356,10 +356,10 @@ export class AudioClip {
             `AudioClip id: ${this.id}.`
         ]);
 
-        channel.audioClipPlayer.AttachAudioClip(this);
+        channel.audioClipPlayer.attachAudioClip(this);
     }
 
-    public Unsend(channel: Channel | Master) {
+    public unsend(channel: Channel | Master) {
 
         if (!channel.audioClipPlayer) return Debug.Error("Could not unsend AudioClip signal to channel, because the channel's AudioClipPlayer is undefined.", [
             "Make sure to initialize the Channel.",
@@ -367,10 +367,10 @@ export class AudioClip {
             `AudioClip id: ${this.id}.`
         ]);
 
-        channel.audioClipPlayer.DetachAudioClip(this);
+        channel.audioClipPlayer.detachAudioClip(this);
     }
 
-    public DetachFromAudioClipPlayer(audioClipPlayer: AudioClipPlayer): void {
+    public detachFromAudioClipPlayer(audioClipPlayer: AudioClipPlayer): void {
 
         const idx = this.audioClipPlayers.indexOf(audioClipPlayer);
 
@@ -383,14 +383,14 @@ export class AudioClip {
         }
 
         if (this.audioClipPlayers.length === 0) {
-            this.Stop();
+            this.stop();
             return;
         }
 
         this.rebuildNodeChain();
     }
 
-    public SetPlaybackRateInSemitones(semitones: number): AudioClip {
+    public setPlaybackRateInSemitones(semitones: number): AudioClip {
 
         if(!this.context) 
             throw new Error("Could not set playback rate because the AudioContext is not defined.");

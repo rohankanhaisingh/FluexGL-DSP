@@ -34,11 +34,11 @@ export declare class DspPipeline {
     constructor({ pathToWasm, pathToWorklet, options }: DspPipelineInitializationOptions);
     /**
      * Initializes the DSP pipeline.
-     * This is a convenience wrapper around {@link InitializeDpsPipeline}.
+     * This is a convenience wrapper around {@link initializeDpsPipeline}.
      *
      * @returns A promise resolving to `true` if the initialization succeeded, otherwise `false`.
      */
-    Init(): Promise<boolean>;
+    init(): Promise<boolean>;
     /**
      * Performs the full initialization of the DSP pipeline.
      * Loads the WebAssembly module, constructs the AudioWorklet blob URL,
@@ -46,7 +46,7 @@ export declare class DspPipeline {
      *
      * @returns A promise resolving to `true` when initialization completes successfully, otherwise `false`.
      */
-    InitializeDpsPipeline(): Promise<boolean>;
+    initializeDpsPipeline(): Promise<boolean>;
     /**
      * Resolves and initializes the system’s default audio output device.
      * This method can only be called after the DSP pipeline has been initialized.
@@ -54,7 +54,7 @@ export declare class DspPipeline {
      * @returns A promise that resolves with the default {@link AudioDevice} instance,
      * or `null` if no default device was found or initialization failed.
      */
-    ResolveDefaultAudioOutputDevice(): Promise<AudioDevice | null>;
-    TellMeWhatTheFuckThisWholeLibraryActuallyDoes(): string;
+    resolveDefaultAudioOutputDevice(): Promise<AudioDevice | null>;
+    tellMeWhatTheFuckThisWholeLibraryActuallyDoes(): string;
 }
 //# sourceMappingURL=DpsPipeline.d.ts.map

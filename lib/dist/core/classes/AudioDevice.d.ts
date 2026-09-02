@@ -19,27 +19,27 @@ export declare class AudioDevice {
      * The master channel is the main output channel for this audio device, and is used to control the overall volume and other properties of the audio output.
      * @returns
      */
-    GetMasterChannel(): Master;
+    getMasterChannel(): Master;
     /**
      * Sets the master channel for this audio device.
      * The master channel is normally automatically created when the audio device is initialized, but this method allows for the master channel to be changed if needed.
      * @param channel
      * @returns
      */
-    SetMasterChannel(channel: Master): void;
+    setMasterChannel(channel: Master): void;
     /**
      * Creates a new master channel based on the this audio device's audio context, and adds it to the master channels array.
      * Normally, an audio device should only have one master channel, but this method allows for multiple master channels to be created and used if needed.
      * @returns
      */
-    CreateMasterChannel(): Master;
+    createMasterChannel(): Master;
     /**
      * Returns the audio context associated with this audio device.
      * This method is provided for ease of use, and is a wrapper for the context property.
      *
      * The audio context can vary between audio devices, and is used to create channels and master channels that are associated with this audio device.
      */
-    GetContext(): AudioContext;
+    getContext(): AudioContext;
     /**
      * Creates a new channel based on the this audio device's audio context.
      * This method is a wrapper for the Channel constructor, and is provided for ease of use.
@@ -47,12 +47,12 @@ export declare class AudioDevice {
      *
      * @example
      * ```
-     * const myChannel: Channel = audioDevice.CreateChannel("My Channel");
+     * const myChannel: Channel = audioDevice.createChannel("My Channel");
      * ```
      *
      * @param label
      * @returns
      */
-    CreateChannel(label?: string): Channel;
+    createChannel(label?: string): Channel;
 }
 //# sourceMappingURL=AudioDevice.d.ts.map

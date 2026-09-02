@@ -25,14 +25,14 @@ export class LowPassFilter extends Effector {
         this.strictMode = mode === StrictMode.Enabled ? StrictMode.Enabled : StrictMode.Disabled;
     }
 
-    public async InitializeOnAttachment(context: AudioContext): Promise<void> {
+    public async initializeOnAttachment(context: AudioContext): Promise<void> {
 
         this.context = context;
-        this.audioWorkletNode = CreateAudioWorkletNode(context, AudioWorkletProcessorNames.LowPassFilter, this.ReturnOptionsAsObject());
+        this.audioWorkletNode = CreateAudioWorkletNode(context, AudioWorkletProcessorNames.LowPassFilter, this.returnOptionsAsObject());
         this.audioWorkletNode && this.registerMessageEventListener(this.audioWorkletNode);
     }
 
-    public ReturnOptionsAsObject(): LowPassFilterOptions {
+    public returnOptionsAsObject(): LowPassFilterOptions {
         return {
             cutoff: this.cutoff,
             minFrequency: this.minFrequency,
@@ -41,7 +41,7 @@ export class LowPassFilter extends Effector {
         }
     }
 
-    public SetCutoff(cutoff: number = 1000): boolean {
+    public setCutoff(cutoff: number = 1000): boolean {
 
         if (!this.context) return false;
 
@@ -55,7 +55,7 @@ export class LowPassFilter extends Effector {
         return SendMessageToWorklet<LowPassFilterMessageCommandId, number>(this.audioWorkletNode, LowPassFilterMessageCommandId.SetCutoff, cutoff);
     }
 
-    public SetMinFrequency(minFrequency: number = 10): boolean {
+    public setMinFrequency(minFrequency: number = 10): boolean {
 
         minFrequency = CoerceFiniteNumber(minFrequency, this.minFrequency);
 
@@ -66,7 +66,7 @@ export class LowPassFilter extends Effector {
         return SendMessageToWorklet<LowPassFilterMessageCommandId, number>(this.audioWorkletNode, LowPassFilterMessageCommandId.SetMinFrequency, minFrequency);
     }
 
-    public SetQ(q: number = 0.7): boolean {
+    public setQ(q: number = 0.7): boolean {
 
         q = CoerceFiniteNumber(q, this.q);
         q = Math.max(0.0001, q);

@@ -31,7 +31,7 @@ export class AudioDevice {
      * The master channel is the main output channel for this audio device, and is used to control the overall volume and other properties of the audio output.
      * @returns 
      */
-    public GetMasterChannel(): Master {
+    public getMasterChannel(): Master {
         return this.masterChannel;
     }
 
@@ -41,7 +41,7 @@ export class AudioDevice {
      * @param channel 
      * @returns 
      */
-    public SetMasterChannel(channel: Master): void {
+    public setMasterChannel(channel: Master): void {
 
         if (channel.id === this.masterChannel.id) return Debug.Error("The provided master channel is the same as the current channel.", [
             "Provide this method with a different master channel.",
@@ -56,7 +56,7 @@ export class AudioDevice {
      * Normally, an audio device should only have one master channel, but this method allows for multiple master channels to be created and used if needed.
      * @returns 
      */
-    public CreateMasterChannel(): Master {
+    public createMasterChannel(): Master {
 
         const master = new Master(this.context);
 
@@ -70,7 +70,7 @@ export class AudioDevice {
      * 
      * The audio context can vary between audio devices, and is used to create channels and master channels that are associated with this audio device.
      */
-    public GetContext(): AudioContext {
+    public getContext(): AudioContext {
         return this.context;
     }
 
@@ -81,13 +81,13 @@ export class AudioDevice {
      * 
      * @example 
      * ```
-     * const myChannel: Channel = audioDevice.CreateChannel("My Channel");
+     * const myChannel: Channel = audioDevice.createChannel("My Channel");
      * ```
      * 
      * @param label 
      * @returns 
      */
-    public CreateChannel(label?: string): Channel {
+    public createChannel(label?: string): Channel {
         return new Channel(this.context, label);
     }
 }

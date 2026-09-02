@@ -7,9 +7,9 @@ export declare class HardClip extends Effector {
     gain: number;
     strictMode: StrictMode;
     constructor({ drive, gain, strictMode }: Partial<HardClipOptions>);
-    InitializeOnAttachment(context: AudioContext): Promise<void>;
-    ReturnOptionsAsObject(): HardClipOptions;
-    SetDrive(drive: number): boolean;
-    SetGain(gain: number): boolean;
+    initializeOnAttachment(context: AudioContext): Promise<void>;
+    returnOptionsAsObject(): HardClipOptions;
+    setDrive(drive: number): boolean;
+    setGain(gain: number): boolean;
 }
 //# sourceMappingURL=HardClip.d.ts.map

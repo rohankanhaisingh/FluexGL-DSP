@@ -27,12 +27,12 @@ export class Chorus extends Effector {
         this.strictMode = mode === StrictMode.Enabled ? StrictMode.Enabled : StrictMode.Disabled;
     }
 
-    public async InitializeOnAttachment(context: AudioContext): Promise<void> {
+    public async initializeOnAttachment(context: AudioContext): Promise<void> {
         this.context = context;
-        this.audioWorkletNode = CreateAudioWorkletNode<ChorusEffectOptions>(context, AudioWorkletProcessorNames.Chorus, this.ReturnOptionsAsObject());
+        this.audioWorkletNode = CreateAudioWorkletNode<ChorusEffectOptions>(context, AudioWorkletProcessorNames.Chorus, this.returnOptionsAsObject());
     }
 
-    public ReturnOptionsAsObject(): ChorusEffectOptions {
+    public returnOptionsAsObject(): ChorusEffectOptions {
         return {
             baseDelayMs: this.baseDelayMs,
             depthMs: this.depthMs,
@@ -43,31 +43,31 @@ export class Chorus extends Effector {
         }
     }
 
-    public SetBaseDelayMs(value: number): boolean {
+    public setBaseDelayMs(value: number): boolean {
         value = Math.max(0, CoerceFiniteNumber(value, this.baseDelayMs));
         this.baseDelayMs = value;
         return SendMessageToWorklet<ChorusMessageCommandId, number>(this.audioWorkletNode, ChorusMessageCommandId.SetBaseDelayMs, value);
     }
 
-    public SetDepthMs(value: number) {
+    public setDepthMs(value: number) {
         value = Math.max(0, CoerceFiniteNumber(value, this.depthMs));
         this.depthMs = value;
         return SendMessageToWorklet<ChorusMessageCommandId, number>(this.audioWorkletNode, ChorusMessageCommandId.SetDepthMs, value);
     }
 
-    public SetRateHz(value: number) {
+    public setRateHz(value: number) {
         value = Math.max(0, CoerceFiniteNumber(value, this.rateHz));
         this.rateHz = value;
         return SendMessageToWorklet<ChorusMessageCommandId, number>(this.audioWorkletNode, ChorusMessageCommandId.SetRateHz, value);
     }
 
-    public SetMix(value: number) {
+    public setMix(value: number) {
         value = Math.max(0, Math.min(1, CoerceFiniteNumber(value, this.mix)));
         this.mix = value;
         return SendMessageToWorklet<ChorusMessageCommandId, number>(this.audioWorkletNode, ChorusMessageCommandId.SetMix, value);
     }
 
-    public SetFeedback(value: number) {
+    public setFeedback(value: number) {
         value = Math.max(0, Math.min(1, CoerceFiniteNumber(value, this.feedback)));
         this.feedback = value;
         return SendMessageToWorklet<ChorusMessageCommandId, number>(this.audioWorkletNode, ChorusMessageCommandId.SetFeedback, value);

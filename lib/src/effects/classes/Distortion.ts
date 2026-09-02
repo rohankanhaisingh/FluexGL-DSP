@@ -8,7 +8,7 @@ export class Distortion extends Effector {
         super();
     }
 
-    public async InitializeOnAttachment(parentialContext: AudioContext): Promise<void> {
+    public async initializeOnAttachment(parentialContext: AudioContext): Promise<void> {
         
     }
 }

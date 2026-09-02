@@ -9,10 +9,10 @@ export declare class HighPassFilter extends Effector {
     maxFrequency: number;
     private contextSampleRate;
     constructor({ cutoff, q, strictMode }?: Partial<HighPassFilterOptions>);
-    InitializeOnAttachment(context: AudioContext): Promise<void>;
-    ReturnOptionsAsObject(): HighPassFilterOptions;
-    SetCutoff(cutoff?: number): boolean;
-    SetMaxFrequency(maxFrequency?: number): boolean;
-    SetQ(q?: number): boolean;
+    initializeOnAttachment(context: AudioContext): Promise<void>;
+    returnOptionsAsObject(): HighPassFilterOptions;
+    setCutoff(cutoff?: number): boolean;
+    setMaxFrequency(maxFrequency?: number): boolean;
+    setQ(q?: number): boolean;
 }
 //# sourceMappingURL=HighPassFilter.d.ts.map

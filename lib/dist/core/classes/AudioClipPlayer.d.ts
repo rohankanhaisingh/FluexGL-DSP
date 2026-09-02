@@ -9,14 +9,14 @@ export declare class AudioClipPlayer {
     context: AudioContext | null;
     channel: Channel | Master | null;
     constructor(context: AudioContext);
-    AttachAudioClip(audioClip: AudioClip): void;
-    DetachAudioClip(clip: AudioClip): void;
-    Send(channel: Channel | Master): void;
-    Unsend(): void;
-    SetVolume(value: number): void;
-    StopAll(): void;
-    Dispose(): void;
-    SetLabel(label: string): void;
+    attachAudioClip(audioClip: AudioClip): void;
+    detachAudioClip(clip: AudioClip): void;
+    send(channel: Channel | Master): void;
+    unsend(): void;
+    setVolume(value: number): void;
+    stopAll(): void;
+    dispose(): void;
+    setLabel(label: string): void;
     get length(): number;
     get volume(): number;
 }

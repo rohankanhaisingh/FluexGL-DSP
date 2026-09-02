@@ -22,20 +22,20 @@ export class AudioClipPlayer {
         this.outputGainNode = new GainNode(context);
     }
 
-    public AttachAudioClip(audioClip: AudioClip): void {
+    public attachAudioClip(audioClip: AudioClip): void {
 
         if (this.audioClips.includes(audioClip)) return Debug.Error("Could not attach audio clip because it is already part of this channel", [
-            "Call .DetachAudioClip([clip AudioClip]) before attaching audio clip."
+            "Call .detachAudioClip([clip AudioClip]) before attaching audio clip."
         ], ErrorCodes.AUDIO_CLIP_ALREADY_ATTACHED);
 
-        audioClip.Initialize(this);
+        audioClip.initialize(this);
         this.audioClips.push(audioClip);
     }
 
-    public DetachAudioClip(clip: AudioClip): void {
+    public detachAudioClip(clip: AudioClip): void {
 
         if (!this.audioClips.includes(clip)) return Debug.Error("Could not detach audio clip because it is not part of this channel", [
-            "Call .AttachAudioClip([clip AudioClip]) before detaching audio clip."
+            "Call .attachAudioClip([clip AudioClip]) before detaching audio clip."
         ], ErrorCodes.AUDIO_CLIP_NOT_FOUND);
 
         const idx = this.audioClips.indexOf(clip);
@@ -43,20 +43,20 @@ export class AudioClipPlayer {
         if (idx >= 0)
             this.audioClips.splice(idx, 1);
 
-        clip.DetachFromAudioClipPlayer(this);
+        clip.detachFromAudioClipPlayer(this);
     }
 
-    public Send(channel: Channel | Master): void {
+    public send(channel: Channel | Master): void {
 
         if (!this.outputGainNode || !channel.input) return Debug.Error("Could not send AudioClipPlayer signal to a channel/master.");
 
-        this.Unsend();
+        this.unsend();
 
         this.channel = channel;
         this.outputGainNode.connect(channel.input);
     }
 
-    public Unsend(): void {
+    public unsend(): void {
 
         if (!this.outputGainNode) return;
 
@@ -69,7 +69,7 @@ export class AudioClipPlayer {
         this.channel = null;
     }
 
-    public SetVolume(value: number): void {
+    public setVolume(value: number): void {
 
         if (!this.outputGainNode) return;
 
@@ -79,17 +79,17 @@ export class AudioClipPlayer {
         this.outputGainNode.gain.value = value;
     }
 
-    public StopAll(): void {
+    public stopAll(): void {
 
         this.audioClips.forEach(function (clip: AudioClip) {
-            clip.Stop();
+            clip.stop();
         });
     }
 
-    public Dispose(): void {
+    public dispose(): void {
 
-        this.StopAll();
-        this.Unsend();
+        this.stopAll();
+        this.unsend();
         this.outputGainNode?.disconnect();
         
         this.audioClips = [];
@@ -98,7 +98,7 @@ export class AudioClipPlayer {
         this.context = null;
     }
 
-    public SetLabel(label: string): void {
+    public setLabel(label: string): void {
         this.label = label;
     }
 

@@ -9,10 +9,10 @@ export declare abstract class Effector {
     private events;
     private handleIncomingMessages;
     protected registerMessageEventListener(node: AudioWorkletNode): void;
-    AddEventListener<K extends keyof EffectorEventMap>(event: K, cb: EffectorEventMap[K]): () => void;
-    Once<K extends keyof EffectorEventMap>(event: K, cb: EffectorEventMap[K]): () => void;
-    RemoveEventListener<K extends keyof EffectorEventMap>(event: K, cb: EffectorEventMap[K]): Effector;
-    ClearEventListeners(event?: keyof EffectorEventMap): Effector;
-    abstract InitializeOnAttachment(context: AudioContext): Promise<void>;
+    addEventListener<K extends keyof EffectorEventMap>(event: K, cb: EffectorEventMap[K]): () => void;
+    once<K extends keyof EffectorEventMap>(event: K, cb: EffectorEventMap[K]): () => void;
+    removeEventListener<K extends keyof EffectorEventMap>(event: K, cb: EffectorEventMap[K]): Effector;
+    clearEventListeners(event?: keyof EffectorEventMap): Effector;
+    abstract initializeOnAttachment(context: AudioContext): Promise<void>;
 }
 //# sourceMappingURL=Effector.d.ts.map

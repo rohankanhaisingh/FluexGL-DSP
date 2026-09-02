@@ -24,10 +24,10 @@ export class Analyser extends Effector {
     constructor(options?: Partial<AnalyserOptions>) {
         super();
 
-        if (options) this.SetOptions(options);
+        if (options) this.setOptions(options);
     }
 
-    public async InitializeOnAttachment(context: AudioContext): Promise<void> {
+    public async initializeOnAttachment(context: AudioContext): Promise<void> {
 
         this.context = context;
         this.analyserNode = new AnalyserNode(context, this.options);
@@ -36,7 +36,7 @@ export class Analyser extends Effector {
         this.allocateBuffers();
     }
 
-    public SetOptions(options: Partial<AnalyserOptions>): void {
+    public setOptions(options: Partial<AnalyserOptions>): void {
 
         (Object.keys(options) as AnalyserOptionKeys[]).forEach((key) => {
             const value = options[key];
@@ -60,7 +60,7 @@ export class Analyser extends Effector {
         }
     }
 
-    public GetWaveformFloatData(): Float32Array | null {
+    public getWaveformFloatData(): Float32Array | null {
 
         if (!this.analyserNode) return null;
 
@@ -68,7 +68,7 @@ export class Analyser extends Effector {
         return this.waveformFloat32ArrayBuffer;
     }
 
-    public GetWaveformByteData(): Uint8Array | null {
+    public getWaveformByteData(): Uint8Array | null {
 
         if (!this.analyserNode) return null;
 
@@ -76,7 +76,7 @@ export class Analyser extends Effector {
         return this.waveformUint8ArrayBuffer;
     }
 
-    public GetFrequencyFloatData(): Float32Array | null {
+    public getFrequencyFloatData(): Float32Array | null {
 
         if(!this.analyserNode) return null;
 
@@ -84,7 +84,7 @@ export class Analyser extends Effector {
         return this.frequencyFloat32ArrayBuffer;
     }
 
-    public GetFrequencyByteData(): Uint8Array | null {
+    public getFrequencyByteData(): Uint8Array | null {
 
         if(!this.analyserNode) return null;
 

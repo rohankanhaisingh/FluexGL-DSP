@@ -44,10 +44,10 @@ export class Channel {
         this.analyserNode.connect(this.gainNode);
         this.gainNode.connect(this.output);
 
-        this.audioClipPlayer.Send(this);
+        this.audioClipPlayer.send(this);
     }
 
-    private rebuildEffectChain(): void {
+    private rebuildEffectChainInternal(): void {
 
         if (!this.input || !this.stereoPannerNode) {
             Debug.Error("Could not rebuild effect chain because one or more required audio nodes are undefined.", [
@@ -140,11 +140,11 @@ export class Channel {
      * work properly.
      * @returns 
      */
-    public RebuildEffectChain() {
-        return this.rebuildEffectChain();
+    public rebuildEffectChain() {
+        return this.rebuildEffectChainInternal();
     }
 
-    public AddEffect(effect: Effector): Channel {
+    public addEffect(effect: Effector): Channel {
 
         if (!this.context)
             throw new Error(`Could not add effect (${effect.id}), to channel (${this.id}), because the channel's AudioContext is undefined.`);
@@ -153,20 +153,20 @@ export class Channel {
             throw new Error(`Could not add effect (${effect.id}), to channel (${this.id}), because it has already been added to the channel.`);
 
         this.effects.push(effect);
-        effect.InitializeOnAttachment(this.context);
-        this.rebuildEffectChain();
+        effect.initializeOnAttachment(this.context);
+        this.rebuildEffectChainInternal();
         return this;
     }
 
-    public AttachEffect(effect: Effector): Channel {
-        return this.AddEffect(effect);
+    public attachEffect(effect: Effector): Channel {
+        return this.addEffect(effect);
     }
 
-    public RemoveEffect(effect: Effector): void {
+    public removeEffect(effect: Effector): void {
 
         if (!this.effects.includes(effect)) {
             Debug.Error("Could not remove effect, because it is not part of this channel.", [
-                "Call .AddEffect([effect Effector]) before removing effect."
+                "Call .addEffect([effect Effector]) before removing effect."
             ], ErrorCodes.EFFECT_NOT_FOUND);
             return;
         }
@@ -180,27 +180,27 @@ export class Channel {
 
         effect.audioWorkletNode?.disconnect();
 
-        this.rebuildEffectChain();
+        this.rebuildEffectChainInternal();
     }
 
-    public RemoveAllEffects() {
+    public removeAllEffects() {
         for (const effect of this.effects) {
-            this.RemoveEffect(effect);
+            this.removeEffect(effect);
         }
     }
 
-    public DetachEffect(effect: Effector): void {
-        return this.RemoveEffect(effect);
+    public detachEffect(effect: Effector): void {
+        return this.removeEffect(effect);
     }
 
-    public DetachAllEffects() {
-        return this.RemoveAllEffects();
+    public detachAllEffects() {
+        return this.removeAllEffects();
     }
 
-    public Send(channel: Channel | Master) {
+    public send(channel: Channel | Master) {
 
         if (channel instanceof Master)
-            return (channel as Master).AttachChannel(this);
+            return (channel as Master).attachChannel(this);
 
         if (channel.id === this.id) return Debug.Error("Could not link channel to itself.", [
             `This channel id: ${this.id}`
@@ -231,10 +231,10 @@ export class Channel {
         this.sends.push(channel);
     }
 
-    public Unsend(channel: Channel | Master) {
+    public unsend(channel: Channel | Master) {
 
         if (channel instanceof Master)
-            return (channel as Master).DetachChannel(this);
+            return (channel as Master).detachChannel(this);
 
         const idx: number = this.sends.indexOf(channel);
 
@@ -246,26 +246,26 @@ export class Channel {
         this.sends.splice(idx, 1);
     }
 
-    public HasAudioClipPlayer(): boolean {
+    public hasAudioClipPlayer(): boolean {
         return !!this.audioClipPlayer;
     }
 
-    public UnsendToAllChannels() {
+    public unsendToAllChannels() {
         for (var i: number = 0; i < this.sends.length; i++) {
-            this.Unsend(this.sends[i]);
+            this.unsend(this.sends[i]);
             i--;
         }
     }
 
-    public AttachAudioClip(audioClip: AudioClip): Channel {
+    public attachAudioClip(audioClip: AudioClip): Channel {
 
         if (!this.audioClipPlayer) throw Error("Cannot not link AudioClip to this channel because this channel's AudioClipPlayer is undefined.");
 
-        this.audioClipPlayer.AttachAudioClip(audioClip);
+        this.audioClipPlayer.attachAudioClip(audioClip);
         return this;
     }
 
-    public Volume(volume?: number): number {
+    public volume(volume?: number): number {
 
         if (!this.context) throw new Error("Could not set volume on channel, because it's context is undefined.");
         if (!this.gainNode) throw new Error("Could not set volume on channel, because it's GainNode is undefined.")
@@ -274,7 +274,7 @@ export class Channel {
         return volume ?? this.gainNode.gain.value;
     }
 
-    public Pan(pan?: number): number {
+    public pan(pan?: number): number {
 
         if (!this.context) throw new Error("Could not set pan on channel, because it's context is undefined.");
         if (!this.stereoPannerNode) throw new Error("Cannot set pan on channel, because it's StereoPannerNode is undefined.");
@@ -283,27 +283,27 @@ export class Channel {
         return pan ?? this.stereoPannerNode.pan.value;
     }
 
-    public GetEffectsByLabel(label: string): Effector[] {
+    public getEffectsByLabel(label: string): Effector[] {
         return this.effects.filter(effect => effect.label === label);
     }
 
-    public GetFirstEffectByLabel(label: string): Effector | null {
+    public getFirstEffectByLabel(label: string): Effector | null {
 
         const filteredEffects: Effector[] = this.effects.filter(effect => effect.label === label);
         return filteredEffects.length !== 0 ? filteredEffects[0] : null;
     }
 
-    public GetEffectById(id: string): Effector[] {
+    public getEffectById(id: string): Effector[] {
         return this.effects.filter(effect => effect.id === id);
     }
 
-    public GetFirstEffectById(id: string): Effector | null {
+    public getFirstEffectById(id: string): Effector | null {
 
         const filteredEffects: Effector[] = this.effects.filter(effect => effect.id === id);
         return filteredEffects.length !== 0 ? filteredEffects[0] : null;
     }
 
-    public MoveEffectToIndex(effect: Effector, index: number | ArrayPosition): void {
+    public moveEffectToIndex(effect: Effector, index: number | ArrayPosition): void {
 
         let fromIndex: number = -1,
             matches: number = 0,
@@ -368,6 +368,6 @@ export class Channel {
 
         // Initializing the effect is unnessecary because it should have been intialized already
         // otherwise it could not been found. Rebuilding the effect chain is nessecary though.
-        this.rebuildEffectChain();
+        this.rebuildEffectChainInternal();
     }
 }

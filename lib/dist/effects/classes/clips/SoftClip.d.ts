@@ -7,9 +7,9 @@ export declare class SoftClip extends Effector {
     gain: number;
     strictMode: StrictMode;
     constructor({ drive, gain, strictMode }?: Partial<SoftClipOptions>);
-    InitializeOnAttachment(context: AudioContext): Promise<void>;
-    ReturnOptionsAsObject(): SoftClipOptions;
-    SetDrive(drive: number): boolean;
-    SetGain(gain: number): boolean;
+    initializeOnAttachment(context: AudioContext): Promise<void>;
+    returnOptionsAsObject(): SoftClipOptions;
+    setDrive(drive: number): boolean;
+    setGain(gain: number): boolean;
 }
 //# sourceMappingURL=SoftClip.d.ts.map

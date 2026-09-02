@@ -16,7 +16,7 @@ export declare class Channel {
     sends: Channel[];
     audioClipPlayer: AudioClipPlayer | null;
     constructor(context: AudioContext, label?: string);
-    private rebuildEffectChain;
+    private rebuildEffectChainInternal;
     private disconnectAudioNodes;
     private isInitialized;
     private isReachable;
@@ -26,24 +26,24 @@ export declare class Channel {
      * work properly.
      * @returns
      */
-    RebuildEffectChain(): void;
-    AddEffect(effect: Effector): Channel;
-    AttachEffect(effect: Effector): Channel;
-    RemoveEffect(effect: Effector): void;
-    RemoveAllEffects(): void;
-    DetachEffect(effect: Effector): void;
-    DetachAllEffects(): void;
-    Send(channel: Channel | Master): void;
-    Unsend(channel: Channel | Master): void;
-    HasAudioClipPlayer(): boolean;
-    UnsendToAllChannels(): void;
-    AttachAudioClip(audioClip: AudioClip): Channel;
-    Volume(volume?: number): number;
-    Pan(pan?: number): number;
-    GetEffectsByLabel(label: string): Effector[];
-    GetFirstEffectByLabel(label: string): Effector | null;
-    GetEffectById(id: string): Effector[];
-    GetFirstEffectById(id: string): Effector | null;
-    MoveEffectToIndex(effect: Effector, index: number | ArrayPosition): void;
+    rebuildEffectChain(): void;
+    addEffect(effect: Effector): Channel;
+    attachEffect(effect: Effector): Channel;
+    removeEffect(effect: Effector): void;
+    removeAllEffects(): void;
+    detachEffect(effect: Effector): void;
+    detachAllEffects(): void;
+    send(channel: Channel | Master): void;
+    unsend(channel: Channel | Master): void;
+    hasAudioClipPlayer(): boolean;
+    unsendToAllChannels(): void;
+    attachAudioClip(audioClip: AudioClip): Channel;
+    volume(volume?: number): number;
+    pan(pan?: number): number;
+    getEffectsByLabel(label: string): Effector[];
+    getFirstEffectByLabel(label: string): Effector | null;
+    getEffectById(id: string): Effector[];
+    getFirstEffectById(id: string): Effector | null;
+    moveEffectToIndex(effect: Effector, index: number | ArrayPosition): void;
 }
 //# sourceMappingURL=Channel.d.ts.map

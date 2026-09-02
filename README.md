@@ -30,14 +30,14 @@ import { DspPipeline, Channel, LoadAudioSource, AudioClip } from "@fluex/fluexgl
         pathToWorklet: "/data/fluexgl-dsp-processor.worklet"
     });
 
-    await pipeline.InitializeDpsPipeline();
+    await pipeline.initializeDpsPipeline();
 
-    const audioDevice = await pipeline.ResolveDefaultAudioOutputDevice();
+    const audioDevice = await pipeline.resolveDefaultAudioOutputDevice();
 
     if(!audioDevice) return;
 
-    const master = audioDevice.GetMasterChannel();
-    const context = audioDevice.GetContext();
+    const master = audioDevice.getMasterChannel();
+    const context = audioDevice.getContext();
 
     const audioSource = await LoadAudioSource("/music.mp3");
 
@@ -46,11 +46,11 @@ import { DspPipeline, Channel, LoadAudioSource, AudioClip } from "@fluex/fluexgl
     const audioClip = new AudioClip(audioSource);
     const channel = new Channel(context);
 
-    channel.Send(master);
-    audioClip.Send(channel);
+    channel.send(master);
+    audioClip.send(channel);
 
     button.addEventListener("click", function() {
-        audioClip.Play();
+        audioClip.play();
     });
 })();
 ```

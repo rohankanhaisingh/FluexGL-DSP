@@ -26,14 +26,14 @@ export class HighPassFilter extends Effector {
         this.audioWorkletNode && this.registerMessageEventListener(this.audioWorkletNode);
     }
 
-    public async InitializeOnAttachment(context: AudioContext): Promise<void> {
+    public async initializeOnAttachment(context: AudioContext): Promise<void> {
 
         this.context = context;
         this.contextSampleRate = context.sampleRate;
-        this.audioWorkletNode = CreateAudioWorkletNode(context, AudioWorkletProcessorNames.HighPassFilter, this.ReturnOptionsAsObject());
+        this.audioWorkletNode = CreateAudioWorkletNode(context, AudioWorkletProcessorNames.HighPassFilter, this.returnOptionsAsObject());
     }
 
-    public ReturnOptionsAsObject(): HighPassFilterOptions {
+    public returnOptionsAsObject(): HighPassFilterOptions {
         return {
             cutoff: this.cutoff,
             q: this.q,
@@ -42,7 +42,7 @@ export class HighPassFilter extends Effector {
         }
     }
 
-    public SetCutoff(cutoff: number = 1000): boolean {
+    public setCutoff(cutoff: number = 1000): boolean {
 
         if (!this.context) return false;
 
@@ -56,7 +56,7 @@ export class HighPassFilter extends Effector {
         return SendMessageToWorklet<HighPassFilterMessageCommandId, number>(this.audioWorkletNode, HighPassFilterMessageCommandId.SetCutoff, cutoff);
     }
     
-    public SetMaxFrequency(maxFrequency: number = this.maxFrequency) {
+    public setMaxFrequency(maxFrequency: number = this.maxFrequency) {
 
         maxFrequency = CoerceFiniteNumber(maxFrequency, this.maxFrequency);
 
@@ -67,7 +67,7 @@ export class HighPassFilter extends Effector {
         return SendMessageToWorklet<HighPassFilterMessageCommandId.SetMaxFrequency, number>(this.audioWorkletNode, HighPassFilterMessageCommandId.SetMaxFrequency, maxFrequency);
     }
 
-    public SetQ(q: number = 0.7): boolean {
+    public setQ(q: number = 0.7): boolean {
 
         q = CoerceFiniteNumber(q, this.q);
         q = Math.max(0.0001, q);

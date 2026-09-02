@@ -14,11 +14,11 @@ export declare class Master {
     constructor(context: AudioContext);
     private disconnectAudioNodes;
     private rebuildEffectChain;
-    AttachEffect(effect: Effector): void;
-    DetachEffect(effect: Effector): void;
-    AttachChannel(channel: Channel): void;
-    DetachChannel(channel: Channel): void;
-    HasAudioClipPlayer(): boolean;
-    AttachAudioClip(audioClip: AudioClip): void;
+    attachEffect(effect: Effector): void;
+    detachEffect(effect: Effector): void;
+    attachChannel(channel: Channel): void;
+    detachChannel(channel: Channel): void;
+    hasAudioClipPlayer(): boolean;
+    attachAudioClip(audioClip: AudioClip): void;
 }
 //# sourceMappingURL=Master.d.ts.map

@@ -46,27 +46,27 @@ export abstract class Effector {
         Debug.Log(`Succesfully registered event listener on effector ${this.name} (${this.label}) [${this.id}]`);
     }
 
-    public AddEventListener<K extends keyof EffectorEventMap>(event: K, cb: EffectorEventMap[K]): () => void {
+    public addEventListener<K extends keyof EffectorEventMap>(event: K, cb: EffectorEventMap[K]): () => void {
 
         this.events[event].push(cb);
 
-        return () => this.RemoveEventListener(event, cb);
+        return () => this.removeEventListener(event, cb);
     }
 
-    public Once<K extends keyof EffectorEventMap>(event: K, cb: EffectorEventMap[K]): () => void {
+    public once<K extends keyof EffectorEventMap>(event: K, cb: EffectorEventMap[K]): () => void {
 
         const wrapper = ((...args: unknown[]) => {
 
             // @ts-ignore
             cb(...args);
 
-            this.RemoveEventListener(event, wrapper as unknown as EffectorEventMap[K]);
+            this.removeEventListener(event, wrapper as unknown as EffectorEventMap[K]);
         }) as unknown as EffectorEventMap[K];
 
-        return this.AddEventListener(event, wrapper);
+        return this.addEventListener(event, wrapper);
     }
 
-    public RemoveEventListener<K extends keyof EffectorEventMap>(event: K, cb: EffectorEventMap[K]): Effector {
+    public removeEventListener<K extends keyof EffectorEventMap>(event: K, cb: EffectorEventMap[K]): Effector {
 
         const arr = this.events[event];
 
@@ -79,7 +79,7 @@ export abstract class Effector {
         return this;
     }
 
-    public ClearEventListeners(event?: keyof EffectorEventMap): Effector {
+    public clearEventListeners(event?: keyof EffectorEventMap): Effector {
 
         if (event) {
             this.events[event].length = 0;
@@ -90,5 +90,5 @@ export abstract class Effector {
         return this;
     }
 
-    public abstract InitializeOnAttachment(context: AudioContext): Promise<void>;
+    public abstract initializeOnAttachment(context: AudioContext): Promise<void>;
 }

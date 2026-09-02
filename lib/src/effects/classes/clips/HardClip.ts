@@ -21,12 +21,12 @@ export class HardClip extends Effector {
         this.strictMode = mode === StrictMode.Enabled ? StrictMode.Enabled : StrictMode.Disabled;
     }
 
-    public async InitializeOnAttachment(context: AudioContext): Promise<void> {
+    public async initializeOnAttachment(context: AudioContext): Promise<void> {
         this.context = context;
-        this.audioWorkletNode = CreateAudioWorkletNode<HardClipOptions>(context, AudioWorkletProcessorNames.HardClip, this.ReturnOptionsAsObject());
+        this.audioWorkletNode = CreateAudioWorkletNode<HardClipOptions>(context, AudioWorkletProcessorNames.HardClip, this.returnOptionsAsObject());
     }
 
-    public ReturnOptionsAsObject(): HardClipOptions {
+    public returnOptionsAsObject(): HardClipOptions {
         return {
             drive: this.drive,
             gain: this.gain,
@@ -34,13 +34,13 @@ export class HardClip extends Effector {
         }
     }
 
-     public SetDrive(drive: number): boolean {
+     public setDrive(drive: number): boolean {
         drive = Math.max(0, CoerceFiniteNumber(drive, this.drive));
         this.drive = drive;
         return SendMessageToWorklet<HardClipMessageCommandId, number>(this.audioWorkletNode, HardClipMessageCommandId.SetDrive, drive);
     }
 
-    public SetGain(gain: number): boolean{
+    public setGain(gain: number): boolean{
         gain = Math.max(0, CoerceFiniteNumber(gain, this.gain));
         this.gain = gain;
         return SendMessageToWorklet<HardClipMessageCommandId, number>(this.audioWorkletNode, HardClipMessageCommandId.SetGain, gain);

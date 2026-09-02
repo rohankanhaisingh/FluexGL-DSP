@@ -9,10 +9,10 @@ export default class NotchFilter extends Effector {
     private contextSampleRate;
     private strictMode;
     constructor({ cutoff, q, minFrequency, strictMode }?: Partial<NotchFilterOptions>);
-    InitializeOnAttachment(context: AudioContext): Promise<void>;
-    ReturnOptionsAsObject(): NotchFilterOptions;
-    SetCutoff(cutoff?: number): boolean;
-    SetMinFrequency(minFrequency?: number): boolean;
-    SetQ(q?: number): boolean;
+    initializeOnAttachment(context: AudioContext): Promise<void>;
+    returnOptionsAsObject(): NotchFilterOptions;
+    setCutoff(cutoff?: number): boolean;
+    setMinFrequency(minFrequency?: number): boolean;
+    setQ(q?: number): boolean;
 }
 //# sourceMappingURL=NotchFilter.d.ts.map
