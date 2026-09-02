@@ -407,9 +407,8 @@ export class AudioClip {
 
         const calculatedPlaybackRate: number = Math.pow(2, semitones / 12);
 
-        for (const buffer of this.audioBufferSourceNodes) {
+        for (const buffer of this.audioBufferSourceNodes) 
             buffer.playbackRate.setValueAtTime(calculatedPlaybackRate, this.context?.currentTime ?? 0);
-        }
 
         this.pitch = semitones;
         this.playbackRate = calculatedPlaybackRate;
@@ -444,9 +443,7 @@ export class AudioClip {
     }
 
     public get formattedDuration(): string {
-
         const date = new Date(this.duration * 1000);
-
         return format(date, "mm:ss");
     }
 
