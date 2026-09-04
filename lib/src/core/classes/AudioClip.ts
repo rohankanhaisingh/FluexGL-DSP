@@ -1,4 +1,4 @@
-import { v4 } from "uuid";
+﻿import { v4 } from "uuid";
 import { format } from "date-fns";
 
 import { AudioClipEventMap, AudioClipEvents, AudioSourceData } from "../../typings";
@@ -86,14 +86,14 @@ export class AudioClip {
     private rebuildNodeChain(): boolean {
 
         if (!this.context || !this.gainNode || !this.stereoPannerNode) {
-            Debug.Error("Failed to rebuild node chain, because some of the core AudioNodes are missing.");
+            Debug.error("Failed to rebuild node chain, because some of the core AudioNodes are missing.");
             return false;
         }
 
         const destinations = this.getOutputNodes();
 
         if (destinations.length === 0) {
-            Debug.Error("Failed to rebuild node chain, because no output destinations are available.");
+            Debug.error("Failed to rebuild node chain, because no output destinations are available.");
             return false;
         }
 
@@ -111,13 +111,13 @@ export class AudioClip {
 
     public initialize(audioClipPlayer: AudioClipPlayer) {
 
-        if (!audioClipPlayer.context) return Debug.Error("Could not initialize AudioClip, because the AudioClipPlayer somehow has no audio context.", [
+        if (!audioClipPlayer.context) return Debug.error("Could not initialize AudioClip, because the AudioClipPlayer somehow has no audio context.", [
             `AudioClipPlayer id: ${audioClipPlayer.id}`,
             `AudioClip id: ${this.id}`
         ], ErrorCodes.AUDIO_CLIP_PLAYER_NO_CONTEXT);
 
         if (this.context && this.context !== audioClipPlayer.context) {
-            return Debug.Error("Could not initialize AudioClip, because the AudioClipPlayer does not share the same AudioContext.", [
+            return Debug.error("Could not initialize AudioClip, because the AudioClipPlayer does not share the same AudioContext.", [
                 `AudioClipPlayer id: ${audioClipPlayer.id}`,
                 `AudioClip id: ${this.id}`
             ], ErrorCodes.AUDIO_CLIP_PLAYER_NO_CONTEXT);
@@ -137,7 +137,7 @@ export class AudioClip {
 
     public play(timestamp?: number, offset?: number) {
 
-        if (!this.context) return Debug.Error("Could not play audio clip, because context (AudioContext) is undefined.", [
+        if (!this.context) return Debug.error("Could not play audio clip, because context (AudioContext) is undefined.", [
             "Make sure to attach this AudioClip to an AudioClipPlayer instance, before calling .play on this AudioClip."
         ]);
 
@@ -149,7 +149,7 @@ export class AudioClip {
         const bufferSource: AudioBufferSourceNode | null = this.createBufferSource();
 
         if (!bufferSource) {
-            Debug.Error("Something went wrong.");
+            Debug.error("Something went wrong.");
             return null;
         }
 
@@ -206,7 +206,7 @@ export class AudioClip {
 
     public seek(seconds: number) {
 
-        if (!this.context) return Debug.Error("Could not seek because the context (AudioContext) of this AudioClip is undefined.", [
+        if (!this.context) return Debug.error("Could not seek because the context (AudioContext) of this AudioClip is undefined.", [
             `Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .seek on this AudioClip.`,
             `AudioClip id: ${this.id}`
         ]);
@@ -246,7 +246,7 @@ export class AudioClip {
 
     public setVolume(volume: number): AudioClip {
 
-        if (!this.context) Debug.Error("Could not set volume because the context (AudioContext) of this AudioClip is undefined.", [
+        if (!this.context) Debug.error("Could not set volume because the context (AudioContext) of this AudioClip is undefined.", [
             "Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .setVolume() on this AudioClip.",
         ], ErrorCodes.AUDIO_CLIP_PLAYER_NO_CONTEXT);
 
@@ -256,11 +256,11 @@ export class AudioClip {
 
     public setPanLevel(panLevel: number): AudioClip {
 
-        if (!this.context) Debug.Error("Could not set volume because the context (AudioContext) of this AudioClip is undefined.", [
+        if (!this.context) Debug.error("Could not set volume because the context (AudioContext) of this AudioClip is undefined.", [
             "Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .setPanLevel() on this AudioClip.",
         ], ErrorCodes.AUDIO_CLIP_PLAYER_NO_CONTEXT);
 
-        if (panLevel < -1 || panLevel > 1) Debug.Error("Could not set the pan level because it is not between -1 and 1.", [
+        if (panLevel < -1 || panLevel > 1) Debug.error("Could not set the pan level because it is not between -1 and 1.", [
             `Given value: ${panLevel}.`,
             `Accepts a value between -1 and 1. Can be a floating number.`
         ], ErrorCodes.PANNING_OUT_OF_RANGE);
@@ -282,7 +282,7 @@ export class AudioClip {
     public setMaxAudioBufferSourceNodes(value: number): AudioClip {
 
         if (!DSP.overrideMaxAudioBufferNodes) {
-            Debug.Warn("Cannot set maxAudioBufferSourceNodes because the option to override the current maximum value is disabled.", [
+            Debug.warn("Cannot set maxAudioBufferSourceNodes because the option to override the current maximum value is disabled.", [
                 "Set overrideMaxAudioBufferNodes on DSP to true, in order to override the maximum audio buffer source nodes."
             ]);
             return this;
@@ -354,7 +354,7 @@ export class AudioClip {
 
     public send(channel: Channel | Master) {
 
-        if (!channel.audioClipPlayer) return Debug.Error("Could not send AudioClip signal to channel, because the channel's AudioClipPlayer is undefined.", [
+        if (!channel.audioClipPlayer) return Debug.error("Could not send AudioClip signal to channel, because the channel's AudioClipPlayer is undefined.", [
             "Make sure to initialize the Channel.",
             `Channel id: ${channel.id}.`,
             `AudioClip id: ${this.id}.`
@@ -365,7 +365,7 @@ export class AudioClip {
 
     public unsend(channel: Channel | Master) {
 
-        if (!channel.audioClipPlayer) return Debug.Error("Could not unsend AudioClip signal to channel, because the channel's AudioClipPlayer is undefined.", [
+        if (!channel.audioClipPlayer) return Debug.error("Could not unsend AudioClip signal to channel, because the channel's AudioClipPlayer is undefined.", [
             "Make sure to initialize the Channel.",
             `Channel id: ${channel.id}.`,
             `AudioClip id: ${this.id}.`
@@ -396,11 +396,11 @@ export class AudioClip {
 
     public setPitch(semitones: number): AudioClip {
 
-        if (!this.context) Debug.Error("Could not set pitch because the context (AudioContext) of this AudioClip is undefined.", [
+        if (!this.context) Debug.error("Could not set pitch because the context (AudioContext) of this AudioClip is undefined.", [
             "Make sure to attach this AudioClip to an AudioClipPlayer instance before calling .setPitch() on this AudioClip.",
         ], ErrorCodes.AUDIO_CLIP_PLAYER_NO_CONTEXT);
 
-        if (semitones < this.minPitchSemitones || semitones > this.maxPitchSemitones) Debug.Error("Could not set the pitch because it is not within the allowed semitone range.", [
+        if (semitones < this.minPitchSemitones || semitones > this.maxPitchSemitones) Debug.error("Could not set the pitch because it is not within the allowed semitone range.", [
             `Given value: ${semitones}.`,
             `Accepts a value between ${this.minPitchSemitones} and ${this.maxPitchSemitones} semitones.`
         ], ErrorCodes.PITCH_OUT_OF_RANGE);

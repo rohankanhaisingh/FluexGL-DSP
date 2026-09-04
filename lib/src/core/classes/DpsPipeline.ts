@@ -1,4 +1,4 @@
-import { v4 } from "uuid";
+﻿import { v4 } from "uuid";
 
 import { AudioDevice } from "./AudioDevice";
 import { Debug } from "../../utilities/debugger";
@@ -72,25 +72,25 @@ export class DspPipeline {
      * @returns A promise resolving to `true` when initialization completes successfully, otherwise `false`.
      */
     public async initializeDpsPipeline(): Promise<boolean> {
-        Debug.Log("Attempting to initialize DSP pipeline...");
+        Debug.log("Attempting to initialize DSP pipeline...");
 
         const start: number = Date.now();
 
         if (!this.pathToWasm || !this.pathToWorklet) {
-            Debug.Error("Could not initialize DSP pipeline, because the path to the WASM, or the worklet file has not been defined.");
+            Debug.error("Could not initialize DSP pipeline, because the path to the WASM, or the worklet file has not been defined.");
             return false;
         }
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            Debug.Log(`Found ${stream.getTracks().length} media stream tracks.`);
+            Debug.log(`Found ${stream.getTracks().length} media stream tracks.`);
 
             // Stop all tracks immediately after verification
             stream.getTracks().forEach((track: MediaStreamTrack) => {
                 track.stop();
             });
         } catch (err) {
-            Debug.Error(
+            Debug.error(
                 "Permission to access media devices has not been granted.",
                 ["Make sure the user has granted FluentGL permission to access media devices."],
                 ErrorCodes.NO_CONTEXT_PERMISSION
@@ -108,23 +108,23 @@ export class DspPipeline {
         const end: number = Date.now();
         const difference: number = end - start;
 
-        Debug.Success(`Successfully initialized DSP pipeline within ${difference}ms.`);
+        Debug.success(`Successfully initialized DSP pipeline within ${difference}ms.`);
 
         return (this.hasInitialized = true);
     }
 
     /**
-     * Resolves and initializes the system’s default audio output device.
+     * Resolves and initializes the systemâ€™s default audio output device.
      * This method can only be called after the DSP pipeline has been initialized.
      *
      * @returns A promise that resolves with the default {@link AudioDevice} instance,
      * or `null` if no default device was found or initialization failed.
      */
     public async resolveDefaultAudioOutputDevice() {
-        Debug.Log("Attempting to resolve default audio output device...");
+        Debug.log("Attempting to resolve default audio output device...");
 
         if (!this.hasInitialized || !this.blobUrl) {
-            Debug.Error(
+            Debug.error(
                 "Could not resolve default audio output device, because the required blob URL has not been created.",
                 ["Call await .initializeDpsPipeline() before resolving default audio output device."]
             );
@@ -139,7 +139,7 @@ export class DspPipeline {
                 audioDeviceInfos.push(device);
 
         devices.length === 0 &&
-            Debug.Warn("No default audio device found.", [], WarningCodes.NO_DEFAULT_AUDIO_DEVICE_FOUND);
+            Debug.warn("No default audio device found.", [], WarningCodes.NO_DEFAULT_AUDIO_DEVICE_FOUND);
 
         const defaultAudioDevice =
             devices.length === 0 ? null : new AudioDevice(audioDeviceInfos[0]);

@@ -1,4 +1,4 @@
-import { Debug } from "./debugger";
+﻿import { Debug } from "./debugger";
 import { ErrorCodes } from "../console-codes";
 
 export let hasInitializedWasm: boolean = false;
@@ -11,7 +11,7 @@ export async function LoadWebAssemblyModule(path: string): Promise<WebAssembly.M
             resolve(module);
         }).catch(function (error: Error) {
             
-            Debug.Error("Failed to load WebAssembly module from path: " + path, [
+            Debug.error("Failed to load WebAssembly module from path: " + path, [
                 "Make sure the path is correct and the server is serving the .wasm file with the correct MIME type (application/wasm).",
                 "Error details: " + error.message
             ], ErrorCodes.WASM_COMPILATION_ERROR);

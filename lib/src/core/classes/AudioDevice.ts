@@ -1,4 +1,4 @@
-import { v4 } from "uuid";
+﻿import { v4 } from "uuid";
 
 import { Master } from "./Master";
 import { Channel } from "./Channel";
@@ -43,7 +43,7 @@ export class AudioDevice {
      */
     public setMasterChannel(channel: Master): void {
 
-        if (channel.id === this.masterChannel.id) return Debug.Error("The provided master channel is the same as the current channel.", [
+        if (channel.id === this.masterChannel.id) return Debug.error("The provided master channel is the same as the current channel.", [
             "Provide this method with a different master channel.",
             `Received master channel ID ${channel.id}.`
         ], ErrorCodes.SAME_MASTER_CHANNEL);

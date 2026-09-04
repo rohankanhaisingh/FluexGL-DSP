@@ -1,4 +1,4 @@
-import { v4 } from "uuid";
+﻿import { v4 } from "uuid";
 
 import { Debug } from "../../utilities/debugger";
 import { AudioClipPlayer } from "./AudioClipPlayer";
@@ -50,7 +50,7 @@ export class Channel {
     private rebuildEffectChainInternal(): void {
 
         if (!this.input || !this.stereoPannerNode) {
-            Debug.Error("Could not rebuild effect chain because one or more required audio nodes are undefined.", [
+            Debug.error("Could not rebuild effect chain because one or more required audio nodes are undefined.", [
                 `Channel id: ${this.id}.`,
                 `Input defined: ${!!this.input}.`,
                 `StereoPannerNode defined: ${!!this.stereoPannerNode}.`
@@ -165,7 +165,7 @@ export class Channel {
     public removeEffect(effect: Effector): void {
 
         if (!this.effects.includes(effect)) {
-            Debug.Error("Could not remove effect, because it is not part of this channel.", [
+            Debug.error("Could not remove effect, because it is not part of this channel.", [
                 "Call .addEffect([effect Effector]) before removing effect."
             ], ErrorCodes.EFFECT_NOT_FOUND);
             return;
@@ -202,26 +202,26 @@ export class Channel {
         if (channel instanceof Master)
             return (channel as Master).attachChannel(this);
 
-        if (channel.id === this.id) return Debug.Error("Could not link channel to itself.", [
+        if (channel.id === this.id) return Debug.error("Could not link channel to itself.", [
             `This channel id: ${this.id}`
         ], ErrorCodes.CHANNEL_CANNOT_LINK_TO_ITSELF);
 
-        if (!this.isInitialized() || !channel.isInitialized()) return Debug.Error("Could not link channels because one (or both) channels are not initialized.", [
+        if (!this.isInitialized() || !channel.isInitialized()) return Debug.error("Could not link channels because one (or both) channels are not initialized.", [
             `This channel id: ${this.id} initialized: ${this.isInitialized()}`,
             `Target channel id: ${channel.id} initialized: ${channel.isInitialized()}`
         ], ErrorCodes.CHANNEL_NOT_INITIALIZED);
 
-        if (this.context !== channel.context) return Debug.Error("Could not link channels because they do not share the same AudioContext.", [
+        if (this.context !== channel.context) return Debug.error("Could not link channels because they do not share the same AudioContext.", [
             `This channel context: ${this.context ? "set" : "null"}`,
             `Target channel context: ${channel.context ? "set" : "null"}`
         ], ErrorCodes.CHANNEL_NOT_SAME_AUDIO_CONTEXT);
 
-        if (this.sends.includes(channel)) return Debug.Error("Could not link channels, because the given channel is already linked with this one.", [
+        if (this.sends.includes(channel)) return Debug.error("Could not link channels, because the given channel is already linked with this one.", [
             `This channel id: ${this.id}`,
             `Target channel id: ${channel.id}`
         ], ErrorCodes.CHANNEL_ALREADY_LINKED);
 
-        if (channel.isReachable(this)) return Debug.Error("Could not link channels because it would create a feedback loop.", [
+        if (channel.isReachable(this)) return Debug.error("Could not link channels because it would create a feedback loop.", [
             `This channel id: ${this.id}`,
             `Target channel id: ${channel.id}`
         ], ErrorCodes.CHANNEL_POSSIBLE_FEEDBACK_LOOP);

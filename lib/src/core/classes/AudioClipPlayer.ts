@@ -1,4 +1,4 @@
-import { v4 } from "uuid";
+﻿import { v4 } from "uuid";
 
 import { AudioClip } from "./AudioClip";
 import { Debug } from "../../utilities/debugger";
@@ -24,7 +24,7 @@ export class AudioClipPlayer {
 
     public attachAudioClip(audioClip: AudioClip): void {
 
-        if (this.audioClips.includes(audioClip)) return Debug.Error("Could not attach audio clip because it is already part of this channel", [
+        if (this.audioClips.includes(audioClip)) return Debug.error("Could not attach audio clip because it is already part of this channel", [
             "Call .detachAudioClip([clip AudioClip]) before attaching audio clip."
         ], ErrorCodes.AUDIO_CLIP_ALREADY_ATTACHED);
 
@@ -34,7 +34,7 @@ export class AudioClipPlayer {
 
     public detachAudioClip(clip: AudioClip): void {
 
-        if (!this.audioClips.includes(clip)) return Debug.Error("Could not detach audio clip because it is not part of this channel", [
+        if (!this.audioClips.includes(clip)) return Debug.error("Could not detach audio clip because it is not part of this channel", [
             "Call .attachAudioClip([clip AudioClip]) before detaching audio clip."
         ], ErrorCodes.AUDIO_CLIP_NOT_FOUND);
 
@@ -48,7 +48,7 @@ export class AudioClipPlayer {
 
     public send(channel: Channel | Master): void {
 
-        if (!this.outputGainNode || !channel.input) return Debug.Error("Could not send AudioClipPlayer signal to a channel/master.");
+        if (!this.outputGainNode || !channel.input) return Debug.error("Could not send AudioClipPlayer signal to a channel/master.");
 
         this.unsend();
 

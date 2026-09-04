@@ -48,7 +48,7 @@ export declare class DspPipeline {
      */
     initializeDpsPipeline(): Promise<boolean>;
     /**
-     * Resolves and initializes the system’s default audio output device.
+     * Resolves and initializes the systemâ€™s default audio output device.
      * This method can only be called after the DSP pipeline has been initialized.
      *
      * @returns A promise that resolves with the default {@link AudioDevice} instance,

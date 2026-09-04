@@ -4,7 +4,7 @@ import { DSP } from "../index";
 
 export namespace Debug {
 
-    export function Log(message: string, additionalDetails?: string[]) {
+    export function log(message: string, additionalDetails?: string[]) {
 
         if (!DSP.debugger.showInfo) return;
 
@@ -17,7 +17,7 @@ export namespace Debug {
         return console.log(outputString, "color: white;", "color: gray", "color: gray");
     }
 
-    export function Success(message: string, additionalDetails?: string[]) {
+    export function success(message: string, additionalDetails?: string[]) {
 
         if (!DSP.debugger.showInfo) return;
 
@@ -30,7 +30,7 @@ export namespace Debug {
         return console.log(outputString, "color: lime;", "color: white", "color: gray");
     }
 
-    export function Warn(message: string, additionalDetails?: string[], warningCode?: WarningCodes) {
+    export function warn(message: string, additionalDetails?: string[], warningCode?: WarningCodes) {
 
         if (!DSP.debugger.showWarnings) return;
 
@@ -43,7 +43,7 @@ export namespace Debug {
         return console.log(outputString, "color: gray", "color: yellow;", "color: white", "color: white; font-style: italic;");
     }
 
-    export function Error(message: string, additionalDetails?: string[], errorCode?: ErrorCodes) {
+    export function error(message: string, additionalDetails?: string[], errorCode?: ErrorCodes) {
 
         if (!DSP.debugger.showErrors) return;
 

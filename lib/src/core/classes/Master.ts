@@ -1,4 +1,4 @@
-import { v4 } from "uuid";
+﻿import { v4 } from "uuid";
 
 import { Channel } from "./Channel";
 import { Debug } from "../../utilities/debugger";
@@ -76,7 +76,7 @@ export class Master {
 
     public attachEffect(effect: Effector): void {
 
-        if (this.effects.includes(effect)) return Debug.Error("Could not attach the effect because it is already part of this master channel.", [
+        if (this.effects.includes(effect)) return Debug.error("Could not attach the effect because it is already part of this master channel.", [
             "Call .detachEffect([effect Effector]) before attaching the effect."
         ], ErrorCodes.EFFECT_ALREADY_ATTACHED);
 
@@ -89,7 +89,7 @@ export class Master {
 
     public detachEffect(effect: Effector): void {
 
-        if (!this.effects.includes(effect)) return Debug.Error("Could not detach the effect because it is not part of this master channel.", [
+        if (!this.effects.includes(effect)) return Debug.error("Could not detach the effect because it is not part of this master channel.", [
             "Call .attachEffect([effect Effector]) before detaching the effect."
         ], ErrorCodes.EFFECT_NOT_FOUND);
 
@@ -107,7 +107,7 @@ export class Master {
 
     public attachChannel(channel: Channel): void {
 
-        if (this.channels.includes(channel)) return Debug.Error("Could not attach the channel because it is already part of this master channel.", [
+        if (this.channels.includes(channel)) return Debug.error("Could not attach the channel because it is already part of this master channel.", [
             "Call .detachChannel([channel Channel]) before attaching the channel."
         ], ErrorCodes.CHANNEL_ALREADY_ATTACHED);
 
@@ -121,7 +121,7 @@ export class Master {
 
     public detachChannel(channel: Channel): void {
 
-        if (!this.channels.includes(channel)) return Debug.Error("Could not detach the channel because it is not part of this master channel.", [
+        if (!this.channels.includes(channel)) return Debug.error("Could not detach the channel because it is not part of this master channel.", [
             "Call .attachChannel([channel Channel]) before detaching the channel."
         ], ErrorCodes.CHANNEL_NOT_FOUND);
 
@@ -143,7 +143,7 @@ export class Master {
 
     public attachAudioClip(audioClip: AudioClip) {
 
-        if (!this.audioClipPlayer) return Debug.Error("Cannot not link AudioClip to this channel because this channel's AudioClipPlayer is undefined.");
+        if (!this.audioClipPlayer) return Debug.error("Cannot not link AudioClip to this channel because this channel's AudioClipPlayer is undefined.");
 
         this.audioClipPlayer.attachAudioClip(audioClip);
     }

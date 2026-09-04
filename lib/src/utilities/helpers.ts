@@ -1,4 +1,4 @@
-import mime from "mime";
+﻿import mime from "mime";
 import { v4 } from "uuid";
 
 import { AudioDevice } from "../core/classes/AudioDevice";
@@ -20,7 +20,7 @@ import { LoadAudioSourceOptions, AudioSourceData, DspPipelineInitializationOptio
  * @returns 
  */
 export async function initializeDspPipeline(options: DspPipelineInitializationOptions): Promise<DspPipelineInitializationState | null> {
-    Debug.Log("Attempting to initialize DSP pipeline...");
+    Debug.log("Attempting to initialize DSP pipeline...");
 
     const start: number = Date.now();
     let initialized: boolean = true;
@@ -29,7 +29,7 @@ export async function initializeDspPipeline(options: DspPipelineInitializationOp
 
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-        Debug.Log(`Found ${stream.getTracks().length} media stream tracks.`);
+        Debug.log(`Found ${stream.getTracks().length} media stream tracks.`);
 
         stream.getTracks().forEach(function (track: MediaStreamTrack) {
             track.stop();
@@ -38,7 +38,7 @@ export async function initializeDspPipeline(options: DspPipelineInitializationOp
 
         initialized = false;
 
-        Debug.Error("Permission to access media devices has not been granted.", [
+        Debug.error("Permission to access media devices has not been granted.", [
             "Make sure the user has granted FluentGL permission to access media devices."
         ], ErrorCodes.NO_CONTEXT_PERMISSION)
     }
@@ -53,7 +53,7 @@ export async function initializeDspPipeline(options: DspPipelineInitializationOp
     const end: number = Date.now(),
         difference: number = end - start;
 
-    Debug.Success(`Succesfully initialized DSP pipeline within ${difference}ms.`);
+    Debug.success(`Succesfully initialized DSP pipeline within ${difference}ms.`);
 
     return {
         success: true,
@@ -98,7 +98,7 @@ export async function resolveAudioInputDevices(): Promise<AudioDevice[]> {
  * @returns 
  */
 export async function resolveDefaultAudioOutputDevice(init: DspPipelineInitializationState): Promise<AudioDevice | null> {
-    Debug.Log("Attempting to resolve default audio output device...");
+    Debug.log("Attempting to resolve default audio output device...");
 
     const audioDeviceInfos: MediaDeviceInfo[] = [];
     const devices = await navigator.mediaDevices.enumerateDevices();
@@ -107,7 +107,7 @@ export async function resolveDefaultAudioOutputDevice(init: DspPipelineInitializ
         (device.kind === "audiooutput" && device.deviceId == "default")
             && audioDeviceInfos.push(device);
 
-    devices.length === 0 && Debug.Warn("No default audio device found.", [], WarningCodes.NO_DEFAULT_AUDIO_DEVICE_FOUND);
+    devices.length === 0 && Debug.warn("No default audio device found.", [], WarningCodes.NO_DEFAULT_AUDIO_DEVICE_FOUND);
 
     const defaultAudioDevice = devices.length === 0 ? null : new AudioDevice(audioDeviceInfos[0]);
 
@@ -123,7 +123,7 @@ export async function resolveDefaultAudioOutputDevice(init: DspPipelineInitializ
  * @returns 
  */
 export async function resolveDefaultAudioInputDevice(init: DspPipelineInitializationState): Promise<AudioDevice | null> {
-    Debug.Log("Attempting to resolve default audio output device...");
+    Debug.log("Attempting to resolve default audio output device...");
 
     const audioDeviceInfos: MediaDeviceInfo[] = [];
     const devices = await navigator.mediaDevices.enumerateDevices();
@@ -132,7 +132,7 @@ export async function resolveDefaultAudioInputDevice(init: DspPipelineInitializa
         (device.kind === "audioinput" && device.deviceId == "default")
             && audioDeviceInfos.push(device);
 
-    devices.length === 0 && Debug.Warn("No default audio device found.", [], WarningCodes.NO_DEFAULT_AUDIO_DEVICE_FOUND);
+    devices.length === 0 && Debug.warn("No default audio device found.", [], WarningCodes.NO_DEFAULT_AUDIO_DEVICE_FOUND);
 
     const defaultAudioDevice = devices.length === 0 ? null : new AudioDevice(audioDeviceInfos[0]);
 
@@ -155,19 +155,19 @@ export async function loadAudioSource(path: string, options: Partial<LoadAudioSo
 
     if (!extension && !options.allowForeignFileTypes) {
 
-        Debug.Error("The file type of the specified file could not be identified.", [
+        Debug.error("The file type of the specified file could not be identified.", [
             `Set allowForeignFileTypes to true in the properties to allow foreign or unknown file types.`
         ], ErrorCodes.NO_FILE_TYPE_FOUND);
         return null;
     }
 
-    if (!SUPPORTED_FILE_TYPES.includes(extension as string)) Debug.Warn("The file type of the specified file is unknown and possibly unknown, but will be used anyways.");
+    if (!SUPPORTED_FILE_TYPES.includes(extension as string)) Debug.warn("The file type of the specified file is unknown and possibly unknown, but will be used anyways.");
 
     const file = await fetch(path, { method: "get" });
 
     if (file.status !== 200) {
 
-        Debug.Error("The specified file could not be loaded.", [
+        Debug.error("The specified file could not be loaded.", [
             `Received status code: ${file.status}.`
         ], ErrorCodes.PATH_TO_FILE_NOT_FOUND);
         return null;
@@ -214,7 +214,7 @@ export function constructProcessorWorklet(code: string): string {
 }
 
 export async function loadWorkletOnAudioDevice(audioDevice: AudioDevice, workletBlobUrl: string) {
-    Debug.Log("Loading worklet modules on master channel...", [`Channel ID: ${audioDevice.id}`]);
+    Debug.log("Loading worklet modules on master channel...", [`Channel ID: ${audioDevice.id}`]);
 
     const context: AudioContext = audioDevice.context,
         start: number = Date.now();
@@ -224,7 +224,7 @@ export async function loadWorkletOnAudioDevice(audioDevice: AudioDevice, worklet
     const end: number = Date.now(),
         difference: number = end - start;
 
-    Debug.Success("Succesfully loaded audio processor worklets into master channel.", [
+    Debug.success("Succesfully loaded audio processor worklets into master channel.", [
         `Executed in ${difference}ms.`,
     ]);
 
@@ -236,7 +236,7 @@ export function sendMessageToWorklet<T, K = any>(node: AudioWorkletNode | null, 
     if (!node) return false;
 
     if (typeof data === "number" && !Number.isFinite(data)) {
-        Debug.Warn("Refusing to send non-finite numeric value to AudioWorkletNode.", [
+        Debug.warn("Refusing to send non-finite numeric value to AudioWorkletNode.", [
             `Command: ${String(commandId)}`,
             `Value: ${String(data)}`
         ]);
@@ -256,34 +256,21 @@ export function coerceFiniteNumber(value: unknown, fallback: number): number {
     return isFiniteNumber(value) ? value : fallback;
 }
 
-export function createAudioWorkletNode<T = any>(context: AudioContext, name: AudioWorkletProcessorNames | string, data: T) {
+export function createAudioWorkletNode<T = any>(context: AudioContext, name: AudioWorkletProcessorNames | string, data: T): AudioWorkletNode {
 
-    if (!compiledWebAssemblyModule) {
-        Debug.Error("Failed to create audio worklet node, because the web assembly module has not been compiled properly.", [
-            `Request audio worklet node: ${name}.`
-        ], ErrorCodes.WORKLET_NO_WASM_MODULE_INSTANTIATED);
-        return null;
-    }
+    if (!compiledWebAssemblyModule)
+        throw new Error("Coult not create audio worklet node. WebAssembly has not been compiled yet.")
 
-    try {
-        return new AudioWorkletNode(context, name, {
-            numberOfInputs: 1,
-            numberOfOutputs: 1,
-            outputChannelCount: [2],
-            parameterData: {
-                ...data,
-                sampleRate: context.sampleRate
-            },
-            processorOptions: {
-                module: compiledWebAssemblyModule
-            }
-        });
-    } catch (err) {
-        Debug.Error("Failed to create audio worklet node.", [
-            `Request audio worklet node: ${name}.`,
-            "Make sure you called initializeDspPipeline and loaded the worklet module on the same AudioContext.",
-            String(err)
-        ]);
-        return null;
-    }
+    return new AudioWorkletNode(context, name, {
+        numberOfInputs: 1,
+        numberOfOutputs: 1,
+        outputChannelCount: [2],
+        parameterData: {
+            ...data,
+            sampleRate: context.sampleRate
+        },
+        processorOptions: {
+            module: compiledWebAssemblyModule
+        }
+    });
 }

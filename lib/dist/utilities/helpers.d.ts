@@ -44,5 +44,5 @@ export declare function loadWorkletOnAudioDevice(audioDevice: AudioDevice, workl
 export declare function sendMessageToWorklet<T, K = any>(node: AudioWorkletNode | null, commandId: T, data: K): boolean;
 export declare function isFiniteNumber(value: unknown): value is number;
 export declare function coerceFiniteNumber(value: unknown, fallback: number): number;
-export declare function createAudioWorkletNode<T = any>(context: AudioContext, name: AudioWorkletProcessorNames | string, data: T): AudioWorkletNode | null;
+export declare function createAudioWorkletNode<T = any>(context: AudioContext, name: AudioWorkletProcessorNames | string, data: T): AudioWorkletNode;
 //# sourceMappingURL=helpers.d.ts.map
