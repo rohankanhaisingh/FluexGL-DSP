@@ -1,4 +1,4 @@
-﻿import { v4 } from "uuid";
+import { v4 } from "uuid";
 
 import { Channel } from "./Channel";
 import { Debug } from "../../utilities/debugger";

@@ -1,4 +1,4 @@
-﻿import { Debug } from "./debugger";
+import { Debug } from "./debugger";
 import { ErrorCodes } from "../console-codes";
 
 export let hasInitializedWasm: boolean = false;

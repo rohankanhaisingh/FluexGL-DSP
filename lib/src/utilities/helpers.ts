@@ -1,4 +1,4 @@
-﻿import mime from "mime";
+import mime from "mime";
 import { v4 } from "uuid";
 
 import { AudioDevice } from "../core/classes/AudioDevice";

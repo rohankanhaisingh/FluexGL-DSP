@@ -1,4 +1,4 @@
-﻿import { v4 } from "uuid";
+import { v4 } from "uuid";
 
 import { IncomingProcessorMessage, type EffectorEvents, EffectorEventMap } from "../../typings";
 import { Debug } from "../../utilities/debugger";

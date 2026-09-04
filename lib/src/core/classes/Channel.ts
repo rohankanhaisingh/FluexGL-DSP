@@ -1,4 +1,4 @@
-﻿import { v4 } from "uuid";
+import { v4 } from "uuid";
 
 import { Debug } from "../../utilities/debugger";
 import { AudioClipPlayer } from "./AudioClipPlayer";

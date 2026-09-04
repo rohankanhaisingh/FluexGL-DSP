@@ -1,4 +1,4 @@
-﻿import { v4 } from "uuid";
+import { v4 } from "uuid";
 import { format } from "date-fns";
 
 import { AudioClipEventMap, AudioClipEvents, AudioSourceData } from "../../typings";
