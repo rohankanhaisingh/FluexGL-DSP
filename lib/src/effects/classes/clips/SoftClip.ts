@@ -1,4 +1,4 @@
-import { CoerceFiniteNumber, CreateAudioWorkletNode, SendMessageToWorklet } from "../../../utilities/helpers";
+import { coerceFiniteNumber, createAudioWorkletNode, sendMessageToWorklet } from "../../../utilities/helpers";
 import { Effector } from "../../../core/classes/Effector";
 import { SoftClipOptions, AudioWorkletProcessorNames, SoftClipMessageCommandId, StrictMode } from "../../../typings";
 
@@ -14,10 +14,10 @@ export class SoftClip extends Effector {
     constructor({ drive, gain, strictMode }: Partial<SoftClipOptions> = {}) {
         super();
 
-        this.drive = Math.max(0, CoerceFiniteNumber(drive, this.drive));
-        this.gain = Math.max(0, CoerceFiniteNumber(gain, this.gain));
+        this.drive = Math.max(0, coerceFiniteNumber(drive, this.drive));
+        this.gain = Math.max(0, coerceFiniteNumber(gain, this.gain));
 
-        const mode = CoerceFiniteNumber(strictMode, this.strictMode);
+        const mode = coerceFiniteNumber(strictMode, this.strictMode);
         this.strictMode = mode === StrictMode.Enabled ? StrictMode.Enabled : StrictMode.Disabled;
     }
 
@@ -27,7 +27,7 @@ export class SoftClip extends Effector {
             this.context = context;
         
         if(this.audioWorkletNode === null) 
-            this.audioWorkletNode = CreateAudioWorkletNode<SoftClipOptions>(context, AudioWorkletProcessorNames.SoftClip, this.returnOptionsAsObject());
+            this.audioWorkletNode = createAudioWorkletNode<SoftClipOptions>(context, AudioWorkletProcessorNames.SoftClip, this.returnOptionsAsObject());
     }
 
     public returnOptionsAsObject(): SoftClipOptions {
@@ -39,14 +39,14 @@ export class SoftClip extends Effector {
     }
 
     public setDrive(drive: number): boolean {
-        drive = Math.max(0, CoerceFiniteNumber(drive, this.drive));
+        drive = Math.max(0, coerceFiniteNumber(drive, this.drive));
         this.drive = drive;
-        return SendMessageToWorklet<SoftClipMessageCommandId, number>(this.audioWorkletNode, SoftClipMessageCommandId.SetDrive, drive);
+        return sendMessageToWorklet<SoftClipMessageCommandId, number>(this.audioWorkletNode, SoftClipMessageCommandId.SetDrive, drive);
     }
 
     public setGain(gain: number): boolean{
-        gain = Math.max(0, CoerceFiniteNumber(gain, this.gain));
+        gain = Math.max(0, coerceFiniteNumber(gain, this.gain));
         this.gain = gain;
-        return SendMessageToWorklet<SoftClipMessageCommandId, number>(this.audioWorkletNode, SoftClipMessageCommandId.SetGain, gain);
+        return sendMessageToWorklet<SoftClipMessageCommandId, number>(this.audioWorkletNode, SoftClipMessageCommandId.SetGain, gain);
     }
 }

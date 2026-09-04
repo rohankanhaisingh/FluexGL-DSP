@@ -19,7 +19,7 @@ import { LoadAudioSourceOptions, AudioSourceData, DspPipelineInitializationOptio
  * FluexGL DSP cannot be used without calling this function first.
  * @returns 
  */
-export async function InitializeDspPipeline(options: DspPipelineInitializationOptions): Promise<DspPipelineInitializationState | null> {
+export async function initializeDspPipeline(options: DspPipelineInitializationOptions): Promise<DspPipelineInitializationState | null> {
     Debug.Log("Attempting to initialize DSP pipeline...");
 
     const start: number = Date.now();
@@ -48,7 +48,7 @@ export async function InitializeDspPipeline(options: DspPipelineInitializationOp
     const workletFileRequest = await fetch(options.pathToWorklet);
     const textContent: string = await workletFileRequest.text();
 
-    const blobUrl: string = ConstructProcessorWorklet(textContent);
+    const blobUrl: string = constructProcessorWorklet(textContent);
 
     const end: number = Date.now(),
         difference: number = end - start;
@@ -65,7 +65,7 @@ export async function InitializeDspPipeline(options: DspPipelineInitializationOp
  * Resolves a list of available audio output devices.
  * @returns 
  */
-export async function ResolveAudioOutputDevices(): Promise<AudioDevice[]> {
+export async function resolveAudioOutputDevices(): Promise<AudioDevice[]> {
 
     const devices = await navigator.mediaDevices.enumerateDevices();
 
@@ -81,7 +81,7 @@ export async function ResolveAudioOutputDevices(): Promise<AudioDevice[]> {
  * Resolves a list of available audio input devices.
  * @returns 
  */
-export async function ResolveAudioInputDevices(): Promise<AudioDevice[]> {
+export async function resolveAudioInputDevices(): Promise<AudioDevice[]> {
 
     const devices = await navigator.mediaDevices.enumerateDevices();
 
@@ -97,7 +97,7 @@ export async function ResolveAudioInputDevices(): Promise<AudioDevice[]> {
  * Resolves the default audio output device.
  * @returns 
  */
-export async function ResolveDefaultAudioOutputDevice(init: DspPipelineInitializationState): Promise<AudioDevice | null> {
+export async function resolveDefaultAudioOutputDevice(init: DspPipelineInitializationState): Promise<AudioDevice | null> {
     Debug.Log("Attempting to resolve default audio output device...");
 
     const audioDeviceInfos: MediaDeviceInfo[] = [];
@@ -113,7 +113,7 @@ export async function ResolveDefaultAudioOutputDevice(init: DspPipelineInitializ
 
     if (!defaultAudioDevice) return null;
 
-    await LoadWorkletOnAudioDevice(defaultAudioDevice, init.workletBlobUrl);
+    await loadWorkletOnAudioDevice(defaultAudioDevice, init.workletBlobUrl);
 
     return defaultAudioDevice;
 }
@@ -122,7 +122,7 @@ export async function ResolveDefaultAudioOutputDevice(init: DspPipelineInitializ
  * Resolves the default audio input device.
  * @returns 
  */
-export async function ResolveDefaultAudioInputDevice(init: DspPipelineInitializationState): Promise<AudioDevice | null> {
+export async function resolveDefaultAudioInputDevice(init: DspPipelineInitializationState): Promise<AudioDevice | null> {
     Debug.Log("Attempting to resolve default audio output device...");
 
     const audioDeviceInfos: MediaDeviceInfo[] = [];
@@ -138,7 +138,7 @@ export async function ResolveDefaultAudioInputDevice(init: DspPipelineInitializa
 
     if (!defaultAudioDevice) return null;
 
-    await LoadWorkletOnAudioDevice(defaultAudioDevice, init.workletBlobUrl);
+    await loadWorkletOnAudioDevice(defaultAudioDevice, init.workletBlobUrl);
 
     return defaultAudioDevice;
 }
@@ -149,7 +149,7 @@ export async function ResolveDefaultAudioInputDevice(init: DspPipelineInitializa
  * @param options 
  * @returns 
  */
-export async function LoadAudioSource(path: string, options: Partial<LoadAudioSourceOptions> = { allowForeignFileTypes: false }): Promise<AudioSourceData | null> {
+export async function loadAudioSource(path: string, options: Partial<LoadAudioSourceOptions> = { allowForeignFileTypes: false }): Promise<AudioSourceData | null> {
 
     const extension: string | null = mime.getType(path);
 
@@ -190,7 +190,7 @@ export async function LoadAudioSource(path: string, options: Partial<LoadAudioSo
 /**
  * Loads an audio file from a blob.
  */
-export async function LoadAudioSourceFromBlob(blob: Blob): Promise<AudioSourceData | null> {
+export async function loadAudioSourceFromBlob(blob: Blob): Promise<AudioSourceData | null> {
 
     const tempContext: AudioContext = new AudioContext(),
         arrayBuffer: ArrayBuffer = await blob.arrayBuffer();
@@ -204,7 +204,7 @@ export async function LoadAudioSourceFromBlob(blob: Blob): Promise<AudioSourceDa
     };
 }
 
-export function ConstructProcessorWorklet(code: string): string {
+export function constructProcessorWorklet(code: string): string {
 
     const blob = new Blob([code], {
         type: "application/javascript"
@@ -213,7 +213,7 @@ export function ConstructProcessorWorklet(code: string): string {
     return URL.createObjectURL(blob);
 }
 
-export async function LoadWorkletOnAudioDevice(audioDevice: AudioDevice, workletBlobUrl: string) {
+export async function loadWorkletOnAudioDevice(audioDevice: AudioDevice, workletBlobUrl: string) {
     Debug.Log("Loading worklet modules on master channel...", [`Channel ID: ${audioDevice.id}`]);
 
     const context: AudioContext = audioDevice.context,
@@ -231,7 +231,7 @@ export async function LoadWorkletOnAudioDevice(audioDevice: AudioDevice, worklet
     return true;
 }
 
-export function SendMessageToWorklet<T, K = any>(node: AudioWorkletNode | null, commandId: T, data: K) {
+export function sendMessageToWorklet<T, K = any>(node: AudioWorkletNode | null, commandId: T, data: K) {
 
     if (!node) return false;
 
@@ -248,15 +248,15 @@ export function SendMessageToWorklet<T, K = any>(node: AudioWorkletNode | null, 
     return true;
 }
 
-export function IsFiniteNumber(value: unknown): value is number {
+export function isFiniteNumber(value: unknown): value is number {
     return typeof value === "number" && Number.isFinite(value);
 }
 
-export function CoerceFiniteNumber(value: unknown, fallback: number): number {
-    return IsFiniteNumber(value) ? value : fallback;
+export function coerceFiniteNumber(value: unknown, fallback: number): number {
+    return isFiniteNumber(value) ? value : fallback;
 }
 
-export function CreateAudioWorkletNode<T = any>(context: AudioContext, name: AudioWorkletProcessorNames | string, data: T) {
+export function createAudioWorkletNode<T = any>(context: AudioContext, name: AudioWorkletProcessorNames | string, data: T) {
 
     if (!compiledWebAssemblyModule) {
         Debug.Error("Failed to create audio worklet node, because the web assembly module has not been compiled properly.", [
@@ -281,7 +281,7 @@ export function CreateAudioWorkletNode<T = any>(context: AudioContext, name: Aud
     } catch (err) {
         Debug.Error("Failed to create audio worklet node.", [
             `Request audio worklet node: ${name}.`,
-            "Make sure you called InitializeDspPipeline/InitializeDpsPipeline and loaded the worklet module on the same AudioContext.",
+            "Make sure you called initializeDspPipeline and loaded the worklet module on the same AudioContext.",
             String(err)
         ]);
         return null;

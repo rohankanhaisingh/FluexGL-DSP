@@ -55,15 +55,15 @@ export {
 } from "./core/exports";
 
 export {
-    InitializeDspPipeline,
-    ResolveAudioOutputDevices,
-    ResolveAudioInputDevices,
-    ResolveDefaultAudioInputDevice,
-    ResolveDefaultAudioOutputDevice,
-    LoadAudioSource,
-    LoadAudioSourceFromBlob,
-    LoadWorkletOnAudioDevice,
-    SendMessageToWorklet
+    initializeDspPipeline,
+    resolveAudioOutputDevices,
+    resolveAudioInputDevices,
+    resolveDefaultAudioInputDevice,
+    resolveDefaultAudioOutputDevice,
+    loadAudioSource,
+    loadAudioSourceFromBlob,
+    loadWorkletOnAudioDevice,
+    sendMessageToWorklet
 } from "./utilities/helpers";
 
 export {

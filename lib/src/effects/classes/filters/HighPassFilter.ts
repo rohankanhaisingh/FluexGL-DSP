@@ -1,4 +1,4 @@
-import { CoerceFiniteNumber, CreateAudioWorkletNode, SendMessageToWorklet } from "../../../utilities/helpers";
+import { coerceFiniteNumber, createAudioWorkletNode, sendMessageToWorklet } from "../../../utilities/helpers";
 import { Effector } from "../../../core/classes/Effector";
 import { AudioWorkletProcessorNames, HighPassFilterMessageCommandId, HighPassFilterOptions, StrictMode } from "../../../typings";
 import { DEFAULT_SAMPLE_RATE } from "../../../utilities/constants";
@@ -18,10 +18,10 @@ export class HighPassFilter extends Effector {
     constructor({ cutoff, q, strictMode }: Partial<HighPassFilterOptions> = {}) {
         super();
 
-        this.cutoff = CoerceFiniteNumber(cutoff, this.cutoff);
-        this.q = CoerceFiniteNumber(q, this.q);
+        this.cutoff = coerceFiniteNumber(cutoff, this.cutoff);
+        this.q = coerceFiniteNumber(q, this.q);
 
-        const mode = CoerceFiniteNumber(strictMode, this.strictMode);
+        const mode = coerceFiniteNumber(strictMode, this.strictMode);
         this.strictMode = mode === StrictMode.Enabled ? StrictMode.Enabled : StrictMode.Disabled;
         this.audioWorkletNode && this.registerMessageEventListener(this.audioWorkletNode);
     }
@@ -30,7 +30,7 @@ export class HighPassFilter extends Effector {
 
         this.context = context;
         this.contextSampleRate = context.sampleRate;
-        this.audioWorkletNode = CreateAudioWorkletNode(context, AudioWorkletProcessorNames.HighPassFilter, this.returnOptionsAsObject());
+        this.audioWorkletNode = createAudioWorkletNode(context, AudioWorkletProcessorNames.HighPassFilter, this.returnOptionsAsObject());
     }
 
     public returnOptionsAsObject(): HighPassFilterOptions {
@@ -46,36 +46,36 @@ export class HighPassFilter extends Effector {
 
         if (!this.context) return false;
 
-        cutoff = CoerceFiniteNumber(cutoff, this.cutoff);
+        cutoff = coerceFiniteNumber(cutoff, this.cutoff);
         cutoff = Math.min(this.maxFrequency, cutoff);
 
         if (cutoff >= this.context.sampleRate)
             cutoff = this.context.sampleRate;
 
         this.cutoff = cutoff;
-        return SendMessageToWorklet<HighPassFilterMessageCommandId, number>(this.audioWorkletNode, HighPassFilterMessageCommandId.SetCutoff, cutoff);
+        return sendMessageToWorklet<HighPassFilterMessageCommandId, number>(this.audioWorkletNode, HighPassFilterMessageCommandId.SetCutoff, cutoff);
     }
     
     public setMaxFrequency(maxFrequency: number = this.maxFrequency) {
 
-        maxFrequency = CoerceFiniteNumber(maxFrequency, this.maxFrequency);
+        maxFrequency = coerceFiniteNumber(maxFrequency, this.maxFrequency);
 
         if(maxFrequency > (this.contextSampleRate * 0.5))
             throw new Error("Could not set the max frequency, because the value is over the sample rate.");
 
         this.maxFrequency = maxFrequency;
-        return SendMessageToWorklet<HighPassFilterMessageCommandId.SetMaxFrequency, number>(this.audioWorkletNode, HighPassFilterMessageCommandId.SetMaxFrequency, maxFrequency);
+        return sendMessageToWorklet<HighPassFilterMessageCommandId.SetMaxFrequency, number>(this.audioWorkletNode, HighPassFilterMessageCommandId.SetMaxFrequency, maxFrequency);
     }
 
     public setQ(q: number = 0.7): boolean {
 
-        q = CoerceFiniteNumber(q, this.q);
+        q = coerceFiniteNumber(q, this.q);
         q = Math.max(0.0001, q);
 
         if (q > 4)
             q = 4;
 
         this.q = q;
-        return SendMessageToWorklet<HighPassFilterMessageCommandId, number>(this.audioWorkletNode, HighPassFilterMessageCommandId.SetQ, q);
+        return sendMessageToWorklet<HighPassFilterMessageCommandId, number>(this.audioWorkletNode, HighPassFilterMessageCommandId.SetQ, q);
     }
 }

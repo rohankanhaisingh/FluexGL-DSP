@@ -3,7 +3,7 @@ import { v4 } from "uuid";
 import { AudioDevice } from "./AudioDevice";
 import { Debug } from "../../utilities/debugger";
 import { LoadWebAssemblyModule } from "../../utilities/web-assembly";
-import { ConstructProcessorWorklet, LoadWorkletOnAudioDevice } from "../../utilities/helpers";
+import { constructProcessorWorklet, loadWorkletOnAudioDevice } from "../../utilities/helpers";
 
 import { ErrorCodes, WarningCodes } from "../../console-codes";
 import { DspPipelineInitializationOptions } from "../../typings";
@@ -103,7 +103,7 @@ export class DspPipeline {
         const workletFileRequest = await fetch(this.pathToWorklet);
         const textContent: string = await workletFileRequest.text();
 
-        this.blobUrl = ConstructProcessorWorklet(textContent);
+        this.blobUrl = constructProcessorWorklet(textContent);
 
         const end: number = Date.now();
         const difference: number = end - start;
@@ -146,7 +146,7 @@ export class DspPipeline {
 
         if (!defaultAudioDevice) return null;
 
-        await LoadWorkletOnAudioDevice(defaultAudioDevice, this.blobUrl);
+        await loadWorkletOnAudioDevice(defaultAudioDevice, this.blobUrl);
 
         return defaultAudioDevice;
     }

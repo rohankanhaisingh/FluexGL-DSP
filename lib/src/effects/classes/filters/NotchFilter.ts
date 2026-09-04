@@ -1,7 +1,7 @@
 import { AudioWorkletProcessorNames, NotchFilterMessageCommandId, NotchFilterOptions, StrictMode } from "../../../typings";
 import { Effector } from "../../../core/classes/Effector";
 import { DEFAULT_SAMPLE_RATE } from "../../../utilities/constants";
-import { CoerceFiniteNumber, CreateAudioWorkletNode, SendMessageToWorklet } from "../../../utilities/helpers";
+import { coerceFiniteNumber, createAudioWorkletNode, sendMessageToWorklet } from "../../../utilities/helpers";
 
 export default class NotchFilter extends Effector {
 
@@ -18,10 +18,10 @@ export default class NotchFilter extends Effector {
     constructor({ cutoff, q, minFrequency, strictMode }: Partial<NotchFilterOptions> = {}) {
         super();
 
-        this.cutoff = CoerceFiniteNumber(cutoff, this.cutoff);
-        this.q = CoerceFiniteNumber(q, this.q);
+        this.cutoff = coerceFiniteNumber(cutoff, this.cutoff);
+        this.q = coerceFiniteNumber(q, this.q);
 
-        const mode = CoerceFiniteNumber(strictMode, this.strictMode);
+        const mode = coerceFiniteNumber(strictMode, this.strictMode);
         this.strictMode = mode === StrictMode.Enabled ? StrictMode.Enabled : StrictMode.Disabled;
         this.audioWorkletNode && this.registerMessageEventListener(this.audioWorkletNode);
     }
@@ -30,7 +30,7 @@ export default class NotchFilter extends Effector {
 
         this.context = context;
         this.contextSampleRate = context.sampleRate;
-        this.audioWorkletNode = CreateAudioWorkletNode(context, AudioWorkletProcessorNames.NotchFilter, this.returnOptionsAsObject());
+        this.audioWorkletNode = createAudioWorkletNode(context, AudioWorkletProcessorNames.NotchFilter, this.returnOptionsAsObject());
     }
 
     public returnOptionsAsObject(): NotchFilterOptions {
@@ -46,36 +46,36 @@ export default class NotchFilter extends Effector {
 
         if (!this.context) return false;
 
-        cutoff = CoerceFiniteNumber(cutoff, this.cutoff);
+        cutoff = coerceFiniteNumber(cutoff, this.cutoff);
         cutoff = Math.min(this.minFrequency, cutoff);
 
         if (cutoff >= this.context.sampleRate)
             cutoff = this.context.sampleRate;
 
         this.cutoff = cutoff;
-        return SendMessageToWorklet<NotchFilterMessageCommandId, number>(this.audioWorkletNode, NotchFilterMessageCommandId.SetCutoff, cutoff);
+        return sendMessageToWorklet<NotchFilterMessageCommandId, number>(this.audioWorkletNode, NotchFilterMessageCommandId.SetCutoff, cutoff);
     }
 
     public setMinFrequency(minFrequency: number = this.minFrequency) {
 
-        minFrequency = CoerceFiniteNumber(minFrequency, this.minFrequency);
+        minFrequency = coerceFiniteNumber(minFrequency, this.minFrequency);
 
         if(minFrequency < 10) 
             minFrequency = 10;
 
         this.minFrequency = minFrequency;
-        return SendMessageToWorklet<NotchFilterMessageCommandId.SetMinFrequency, number>(this.audioWorkletNode, NotchFilterMessageCommandId.SetMinFrequency, minFrequency);
+        return sendMessageToWorklet<NotchFilterMessageCommandId.SetMinFrequency, number>(this.audioWorkletNode, NotchFilterMessageCommandId.SetMinFrequency, minFrequency);
     }
 
     public setQ(q: number = 0.7): boolean {
 
-        q = CoerceFiniteNumber(q, this.q);
+        q = coerceFiniteNumber(q, this.q);
         q = Math.max(0.0001, q);
 
         if (q > 4)
             q = 4;
 
         this.q = q;
-        return SendMessageToWorklet<NotchFilterMessageCommandId, number>(this.audioWorkletNode, NotchFilterMessageCommandId.SetQ, q);
+        return sendMessageToWorklet<NotchFilterMessageCommandId, number>(this.audioWorkletNode, NotchFilterMessageCommandId.SetQ, q);
     }
 }
