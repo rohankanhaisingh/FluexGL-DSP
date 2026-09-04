@@ -1,7 +1,7 @@
 import { v4 } from "uuid";
 import { format } from "date-fns";
 
-import { AudioClipEventMap, AudioClipEvents, AudioSourceData } from "../../typings";
+import { AudioClipEventMap, AudioClipEvents, AudioClipOnInitializeEvent, AudioSourceData } from "../../typings";
 import { Debug } from "../../utilities/debugger";
 import { Channel } from "./Channel";
 import { AudioClipPlayer } from "./AudioClipPlayer";
@@ -9,7 +9,9 @@ import { Master } from "./Master";
 import { DSP } from "../../index";
 import { ErrorCodes } from "../../console-codes";
 
-type ProgressPayload = Parameters<AudioClipEventMap["progress"]>[0];
+type OnProgressCallbackFunction = AudioClipEventMap["progress"];
+type OnInitializeCallbackFunction = AudioClipEventMap["initialize"];
+type OnPlayCallbackFunction = AudioClipEventMap["play"];
 
 export class AudioClip {
 
@@ -41,7 +43,9 @@ export class AudioClip {
     private progressInterval: number | null = 0;
 
     private events: AudioClipEvents = {
-        "progress": []
+        "progress": [],
+        "initialize": [],
+        "play": []
     }
 
     constructor(public data: AudioSourceData) { }
@@ -111,6 +115,9 @@ export class AudioClip {
 
     public initialize(audioClipPlayer: AudioClipPlayer) {
 
+        const startTimestamp: number = Date.now(),
+            self: AudioClip = this;
+
         if (!audioClipPlayer.context) return Debug.error("Could not initialize AudioClip, because the AudioClipPlayer somehow has no audio context.", [
             `AudioClipPlayer id: ${audioClipPlayer.id}`,
             `AudioClip id: ${this.id}`
@@ -132,6 +139,16 @@ export class AudioClip {
         if (!this.audioClipPlayers.includes(audioClipPlayer))
             this.audioClipPlayers.push(audioClipPlayer);
 
+        const endTimestamp: number = Date.now(),
+            difference: number = endTimestamp - startTimestamp;
+
+        this.events.initialize.forEach(function(cb: OnInitializeCallbackFunction) {
+            cb({
+                durationOfInitialization: difference,
+                context: self.context
+            });
+        });
+
         this.rebuildNodeChain();
     }
 
@@ -141,8 +158,8 @@ export class AudioClip {
             "Make sure to attach this AudioClip to an AudioClipPlayer instance, before calling .play on this AudioClip."
         ]);
 
-        const context = this.context;
-        const self = this;
+        const context = this.context,
+            self = this;
 
         if (this.audioBufferSourceNodes.length > this.maxAudioBufferSourceNodes - 1) return null;
 
@@ -170,7 +187,7 @@ export class AudioClip {
 
             const formattedTime = format(date, "mm:ss");
 
-            const progressPayload: ProgressPayload = {
+            const progressPayload: Parameters<AudioClipEventMap["progress"]>[0] = {
                 current: parseFloat(current.toFixed(2)),
                 startTime: self.startTime,
                 offset: self.offsetAtStart,
@@ -178,7 +195,7 @@ export class AudioClip {
                 formatted: formattedTime
             }
 
-            self.events.progress.forEach(function (cb: (event: ProgressPayload) => void) {
+            self.events.progress.forEach(function (cb: OnProgressCallbackFunction) {
                 cb(progressPayload);
             });
         }, this.progressUpdateSpeed);
@@ -200,6 +217,14 @@ export class AudioClip {
         this.rebuildNodeChain();
 
         bufferSource.start(timestamp ?? this.startTime, actualOffset);
+
+        this.events.play.forEach(function(cb: OnPlayCallbackFunction) {
+            cb({
+                timestamp: Date.now(),
+                audioBufferSourceNodes: self.audioBufferSourceNodes,
+                context: context,
+            })
+        });
 
         return this;
     }

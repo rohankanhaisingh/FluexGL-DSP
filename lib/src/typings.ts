@@ -119,8 +119,21 @@ export interface AudioClipOnProgressEvent {
     formatted: string;
 }
 
+export interface AudioClipOnInitializeEvent {
+    durationOfInitialization: number;
+    context: AudioContext | null;
+}
+
+export interface AudioClipOnPlayEvent {
+    timestamp: number;
+    audioBufferSourceNodes: AudioBufferSourceNode[];
+    context: AudioContext;
+}
+
 export interface AudioClipEventMap {
     "progress": (event: AudioClipOnProgressEvent) => void;
+    "initialize": (event: AudioClipOnInitializeEvent) => void;
+    "play": (event: AudioClipOnPlayEvent) => void;
 }
 
 export interface DspPipelineInitializationOptions {
