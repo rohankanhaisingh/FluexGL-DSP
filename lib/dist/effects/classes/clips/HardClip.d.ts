@@ -6,7 +6,7 @@ export declare class HardClip extends Effector {
     drive: number;
     gain: number;
     strictMode: StrictMode;
-    constructor({ drive, gain, strictMode }: Partial<HardClipOptions>);
+    constructor(options?: HardClipOptions);
     initializeOnAttachment(context: AudioContext): Promise<void>;
     returnOptionsAsObject(): HardClipOptions;
     setDrive(drive: number): boolean;

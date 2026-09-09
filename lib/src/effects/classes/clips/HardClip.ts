@@ -11,13 +11,13 @@ export class HardClip extends Effector {
     public gain: number = 1;
     public strictMode: StrictMode = StrictMode.Disabled;
 
-    constructor({ drive, gain, strictMode }: Partial<HardClipOptions>) {
+    constructor(options?: HardClipOptions) {
         super();
 
-        this.drive = Math.max(0, coerceFiniteNumber(drive, this.drive));
-        this.gain = Math.max(0, coerceFiniteNumber(gain, this.gain));
+        this.drive = Math.max(0, coerceFiniteNumber(options?.drive ?? this.drive, this.drive));
+        this.gain = Math.max(0, coerceFiniteNumber(options?.gain ?? this.gain, this.gain));
 
-        const mode = coerceFiniteNumber(strictMode, this.strictMode);
+        const mode = coerceFiniteNumber(options?.strictMode ?? this.strictMode, this.strictMode);
         this.strictMode = mode === StrictMode.Enabled ? StrictMode.Enabled : StrictMode.Disabled;
     }
 
