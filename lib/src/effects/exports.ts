@@ -7,6 +7,7 @@ export { Saturation } from "./classes/Saturation";
 export { StereoPanner } from "./classes/StereoPanner";
 export { SoftClip } from "./classes/clips/SoftClip";
 export { HardClip } from "./classes/clips/HardClip";
+export { Reverb, type ReverbOptions } from "./classes/Reverb";
 
 export { Compressor } from "./classes/compressors/Compressor";
 export { MultibandCompressor } from "./classes/compressors/MultibandCompressor";
@@ -15,12 +16,6 @@ export { AdvancedDelay } from "./classes/delays/AdvancedDelay";
 export { MonoDelay } from "./classes/delays/MonoDelay";
 export { PingPongDelay } from "./classes/delays/PingPongDelay";
 export { StereoDelay } from "./classes/delays/StereoDelay";
-
-export { ChamberReverb } from "./classes/reverbs/ChamberReverb";
-export { ConvolverReverb } from "./classes/reverbs/ConvolverReverb";
-export { GenericReverb } from "./classes/reverbs/GenericReverb";
-export { HallReverb } from "./classes/reverbs/HallReverb";
-export { RoomReverb } from "./classes/reverbs/RoomReverb";
 
 export { LowPassFilter } from "./classes/filters/LowPassFilter";
 export { HighPassFilter } from "./classes/filters/HighPassFilter";

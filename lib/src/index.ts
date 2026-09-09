@@ -33,15 +33,11 @@ export {
     MonoDelay,
     PingPongDelay,
     StereoDelay,
-    ChamberReverb,
-    ConvolverReverb,
-    GenericReverb,
-    HallReverb,
-    RoomReverb,
     SoftClip,
     LowPassFilter,
     HardClip,
-    HighPassFilter
+    HighPassFilter,
+    Reverb, type ReverbOptions
 } from "./effects/exports";
 
 export {
