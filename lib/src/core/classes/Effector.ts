@@ -14,6 +14,21 @@ export abstract class Effector {
 
     private hasRegisteredMessageEventListener: boolean = false;
 
+    /**
+     * The node that receives the signal of this effect. Effects built from native
+     * Web Audio nodes (instead of an AudioWorklet) override this and outputNode.
+     */
+    public get inputNode(): AudioNode | null {
+        return this.audioWorkletNode;
+    }
+
+    /**
+     * The node that outputs the processed signal of this effect.
+     */
+    public get outputNode(): AudioNode | null {
+        return this.audioWorkletNode;
+    }
+
     private events: EffectorEvents = {
         "incoming-processor-error": [],
         "incoming-processor-message": [],

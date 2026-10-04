@@ -176,29 +176,11 @@ export class AudioClip {
         this.offsetAtStart = actualOffset;
         this.isPlaying = true;
 
-        if (this.progressInterval) window.clearInterval(this.progressInterval);
+        // The progress timer only runs while someone listens to it.
+        this.stopProgressInterval();
 
-        if (this.isPlaying) this.progressInterval = window.setInterval(function () {
-
-            if (!self.isPlaying) return;
-
-            const current = self.offsetAtStart + (context.currentTime - self.startTime);
-            const date: Date = new Date(current * 1000);
-
-            const formattedTime = format(date, "mm:ss");
-
-            const progressPayload: Parameters<AudioClipEventMap["progress"]>[0] = {
-                current: parseFloat(current.toFixed(2)),
-                startTime: self.startTime,
-                offset: self.offsetAtStart,
-                contextTimestamp: context.currentTime,
-                formatted: formattedTime
-            }
-
-            self.events.progress.forEach(function (cb: OnProgressCallbackFunction) {
-                cb(progressPayload);
-            });
-        }, this.progressUpdateSpeed);
+        if (this.events.progress.length > 0)
+            this.startProgressInterval();
 
         bufferSource.addEventListener("ended", function () {
 
@@ -206,15 +188,22 @@ export class AudioClip {
 
             bufferSource.disconnect();
 
-            if (i === 0) self.isPlaying = false;
-
             if (i >= 0)
-                return self.audioBufferSourceNodes.splice(i, 1);
+                self.audioBufferSourceNodes.splice(i, 1);
 
+            // Only stop when the last overlapping playback has ended.
+            if (self.audioBufferSourceNodes.length === 0) {
+                self.isPlaying = false;
+                self.stopProgressInterval();
+            }
         });
 
         this.audioBufferSourceNodes.push(bufferSource);
-        this.rebuildNodeChain();
+
+        // Only connect the new source. Rebuilding the whole chain on every play changes the
+        // audio graph (disconnects and reconnects) for every sound, which is expensive with many sounds.
+        if (this.gainNode) bufferSource.connect(this.gainNode);
+        else this.rebuildNodeChain();
 
         bufferSource.start(timestamp ?? this.startTime, actualOffset);
 
@@ -249,6 +238,42 @@ export class AudioClip {
         this.play(undefined, clamped);
 
         return this;
+    }
+
+    private startProgressInterval(): void {
+
+        if (this.progressInterval || !this.context) return;
+
+        const self: AudioClip = this,
+            context: AudioContext = this.context;
+
+        this.progressInterval = window.setInterval(function () {
+
+            if (!self.isPlaying) return;
+
+            const current = self.offsetAtStart + (context.currentTime - self.startTime);
+            const date: Date = new Date(current * 1000);
+
+            const progressPayload: Parameters<AudioClipEventMap["progress"]>[0] = {
+                current: parseFloat(current.toFixed(2)),
+                startTime: self.startTime,
+                offset: self.offsetAtStart,
+                contextTimestamp: context.currentTime,
+                formatted: format(date, "mm:ss")
+            }
+
+            self.events.progress.forEach(function (cb: OnProgressCallbackFunction) {
+                cb(progressPayload);
+            });
+        }, this.progressUpdateSpeed);
+    }
+
+    private stopProgressInterval(): void {
+
+        if (!this.progressInterval) return;
+
+        window.clearInterval(this.progressInterval);
+        this.progressInterval = null;
     }
 
     public stop(): AudioClip | null {
@@ -334,6 +359,10 @@ export class AudioClip {
     public addEventListener<K extends keyof AudioClipEventMap>(event: K, cb: AudioClipEventMap[K]): () => void {
 
         this.events[event].push(cb);
+
+        // A progress listener added while the clip is already playing starts the timer.
+        if (event === "progress" && this.isPlaying)
+            this.startProgressInterval();
         return () => this.removeEventListener(event, cb);
     }
 

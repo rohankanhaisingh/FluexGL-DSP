@@ -3,7 +3,7 @@ import { Effector } from "../../../core/classes/Effector";
 import { DEFAULT_SAMPLE_RATE } from "../../../utilities/constants";
 import { coerceFiniteNumber, createAudioWorkletNode, sendMessageToWorklet } from "../../../utilities/helpers";
 
-export default class NotchFilter extends Effector {
+export class NotchFilter extends Effector {
 
     public name: string = "NotchFilter";
     public label: string | null = "NotchFilter";

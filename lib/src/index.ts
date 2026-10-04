@@ -37,6 +37,7 @@ export {
     LowPassFilter,
     HardClip,
     HighPassFilter,
+    NotchFilter,
     Reverb, type ReverbOptions
 } from "./effects/exports";
 
@@ -47,7 +48,15 @@ export {
     Master,
     AudioClip,
     DspPipeline,
-    AudioClipPlayer
+    AudioClipPlayer,
+    SpatialAudioListener,
+    SpatialAudioListener3D,
+    SpatialAudioSource,
+    SpatialAudioRenderer,
+    SpatialAudioRenderer2D,
+    SpatialAudioRenderer3D,
+    type SpatialClusterInfo,
+    type SpatialRendererStats
 } from "./core/exports";
 
 export {
@@ -79,6 +88,11 @@ export {
     AudioWorkletProcessorNames,
     ChorusMessageCommandId,
     LowPassFilterMessageCommandId,
+    HighPassFilterMessageCommandId,
+    NotchFilterMessageCommandId,
+    AdvancedDelayMessageCommandId,
+    EqualizerMessageCommandId,
+    SaturationMessageCommandId,
 } from "./typings";
 
 export type {
@@ -97,6 +111,23 @@ export type {
     DspPipelineInitializationState,
     ChorusEffectOptions,
     LowPassFilterOptions,
+    HighPassFilterOptions,
+    NotchFilterOptions,
+    CompressorOptions,
+    LimiterOptions,
+    EqualizerBand,
+    EqualizerBandType,
+    EqualizerOptions,
+    MonoDelayOptions,
+    PingPongDelayOptions,
+    StereoDelayOptions,
+    AdvancedDelayOptions,
+    SaturationMode,
+    SaturationOptions,
+    StereoPannerOptions,
+    MultibandCompressorBandName,
+    MultibandCompressorBandOptions,
+    MultibandCompressorOptions,
     SoftClipOptions,
     HardClipOptions,
     EffectorEventMap,
@@ -105,4 +136,18 @@ export type {
     ProcessorData,
     EffectorEvents,
     ArrayPosition,
+    Vector2,
+    Vector3,
+    SpatialDistanceModel,
+    SpatialYAxisDirection,
+    SpatialPanningModel,
+    SpatialAttenuationOptions,
+    SpatialAudioSourceOptions,
+    SpatialAudioListenerOptions,
+    SpatialAudioListener3DOptions,
+    SpatialClusteringOptions,
+    SpatialAudioRendererOptions,
+    SpatialAudioRenderer2DOptions,
+    SpatialAudioRenderer3DOptions,
+    SpatialSourceState,
 } from "./typings";

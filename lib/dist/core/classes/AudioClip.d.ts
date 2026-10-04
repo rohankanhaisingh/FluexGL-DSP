@@ -33,6 +33,8 @@ export declare class AudioClip {
     initialize(audioClipPlayer: AudioClipPlayer): void;
     play(timestamp?: number, offset?: number): void | this | null;
     seek(seconds: number): void | this;
+    private startProgressInterval;
+    private stopProgressInterval;
     stop(): AudioClip | null;
     setVolume(volume: number): AudioClip;
     setPanLevel(panLevel: number): AudioClip;

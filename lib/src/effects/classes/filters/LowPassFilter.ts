@@ -14,7 +14,7 @@ export class LowPassFilter extends Effector {
     public minFrequency: number = 10;
     public strictMode: StrictMode = StrictMode.Disabled;
 
-    constructor({ cutoff, minFrequency, q, strictMode }: Partial<LowPassFilterOptions>) {
+    constructor({ cutoff, minFrequency, q, strictMode }: Partial<LowPassFilterOptions> = {}) {
         super();
 
         this.cutoff = coerceFiniteNumber(cutoff, this.cutoff);

@@ -1,6 +1,6 @@
 import { NotchFilterOptions } from "../../../typings";
 import { Effector } from "../../../core/classes/Effector";
-export default class NotchFilter extends Effector {
+export declare class NotchFilter extends Effector {
     name: string;
     label: string | null;
     cutoff: number;

@@ -8,6 +8,7 @@ export async function LoadWebAssemblyModule(path: string): Promise<WebAssembly.M
     return new Promise(function (resolve, reject) {
         WebAssembly.compileStreaming(fetch(path)).then(function (module: WebAssembly.Module) {
             compiledWebAssemblyModule = module;
+            hasInitializedWasm = true;
             resolve(module);
         }).catch(function (error: Error) {
             

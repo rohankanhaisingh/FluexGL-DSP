@@ -10,10 +10,16 @@ export interface ReverbOptions {
     strictMode: StrictMode;
 }
 
+/**
+ * Must match ReverbMessageCommandId in the ReverbProcessor worklet.
+ * The processor works with separate dry and wet levels; `mix` is translated into both.
+ */
 export enum ReverbMessageCommandId {
     SetRoomSize,
     SetDamping,
-    SetMix,
+    SetDry,
+    SetWet,
+    SetPreDelayMs,
     SetStereoSpreadMs
 }
 
@@ -33,7 +39,7 @@ export class Reverb extends Effector {
 
         this.roomSize = Math.max(0, coerceFiniteNumber(options?.roomSize ?? this.roomSize, this.roomSize));
         this.damping = Math.max(0, coerceFiniteNumber(options?.damping ?? this.damping, this.damping));
-        this.mix = Math.max(0, coerceFiniteNumber(options?.mix ?? this.mix, this.mix));
+        this.mix = Math.min(1, Math.max(0, coerceFiniteNumber(options?.mix ?? this.mix, this.mix)));
         this.stereoSpreadMs = Math.max(0, coerceFiniteNumber(options?.stereoSpreadMs ?? this.stereoSpreadMs, this.stereoSpreadMs));
 
         const mode = coerceFiniteNumber(options?.strictMode ?? this.strictMode, this.strictMode);
@@ -41,8 +47,17 @@ export class Reverb extends Effector {
     }
 
     public async initializeOnAttachment(context: AudioContext): Promise<void> {
+
+        if (this.context === context && this.audioWorkletNode) return;
+
         this.context = context;
-        this.audioWorkletNode = createAudioWorkletNode<ReverbOptions>(context, AudioWorkletProcessorNames.Reverb, this.returnOptionsAsObject());
+        this.audioWorkletNode = createAudioWorkletNode(context, AudioWorkletProcessorNames.Reverb, {
+            ...this.returnOptionsAsObject(),
+            dry: 1 - this.mix,
+            wet: this.mix
+        });
+
+        this.registerMessageEventListener(this.audioWorkletNode);
     }
 
     public returnOptionsAsObject(): ReverbOptions {
@@ -67,10 +82,14 @@ export class Reverb extends Effector {
         return sendMessageToWorklet<ReverbMessageCommandId, number>(this.audioWorkletNode, ReverbMessageCommandId.SetDamping, damping);
     }
 
+    /**
+     * Sets the dry/wet balance, between 0 (dry only) and 1 (wet only).
+     */
     public setMix(mix: number): boolean {
-        mix = Math.max(0, coerceFiniteNumber(mix ?? this.mix, this.mix));
+        mix = Math.min(1, Math.max(0, coerceFiniteNumber(mix ?? this.mix, this.mix)));
         this.mix = mix;
-        return sendMessageToWorklet<ReverbMessageCommandId, number>(this.audioWorkletNode, ReverbMessageCommandId.SetMix, mix);
+        return sendMessageToWorklet<ReverbMessageCommandId, number>(this.audioWorkletNode, ReverbMessageCommandId.SetDry, 1 - mix)
+            && sendMessageToWorklet<ReverbMessageCommandId, number>(this.audioWorkletNode, ReverbMessageCommandId.SetWet, mix);
     }
 
     public setStereoSpreadMs(stereoSpreadMs: number) {

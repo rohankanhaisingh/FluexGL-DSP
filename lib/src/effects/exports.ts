@@ -19,3 +19,4 @@ export { StereoDelay } from "./classes/delays/StereoDelay";
 
 export { LowPassFilter } from "./classes/filters/LowPassFilter";
 export { HighPassFilter } from "./classes/filters/HighPassFilter";
+export { NotchFilter } from "./classes/filters/NotchFilter";

@@ -6,6 +6,15 @@ export declare abstract class Effector {
     audioWorkletNode: AudioWorkletNode | null;
     context: AudioContext | null;
     private hasRegisteredMessageEventListener;
+    /**
+     * The node that receives the signal of this effect. Effects built from native
+     * Web Audio nodes (instead of an AudioWorklet) override this and outputNode.
+     */
+    get inputNode(): AudioNode | null;
+    /**
+     * The node that outputs the processed signal of this effect.
+     */
+    get outputNode(): AudioNode | null;
     private events;
     private handleIncomingMessages;
     protected registerMessageEventListener(node: AudioWorkletNode): void;

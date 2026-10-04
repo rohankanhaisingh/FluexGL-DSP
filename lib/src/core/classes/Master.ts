@@ -46,8 +46,7 @@ export class Master {
         if (this.analyserNode) this.analyserNode.disconnect();
 
         this.effects.forEach(function (effect: Effector) {
-            if (effect.audioWorkletNode)
-                effect.audioWorkletNode.disconnect();
+            effect.outputNode?.disconnect();
         });
     }
 
@@ -62,10 +61,10 @@ export class Master {
 
         this.effects.forEach(function (effect: Effector) {
 
-            if (!effect.audioWorkletNode) return;
+            if (!effect.inputNode || !effect.outputNode) return;
 
-            currentNode.connect(effect.audioWorkletNode);
-            currentNode = effect.audioWorkletNode;
+            currentNode.connect(effect.inputNode);
+            currentNode = effect.outputNode;
         });
 
         currentNode.connect(this.gainNode);
@@ -92,6 +91,8 @@ export class Master {
         if (!this.effects.includes(effect)) return Debug.error("Could not detach the effect because it is not part of this master channel.", [
             "Call .attachEffect([effect Effector]) before detaching the effect."
         ], ErrorCodes.EFFECT_NOT_FOUND);
+
+        effect.outputNode?.disconnect();
 
         const self = this;
 

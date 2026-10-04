@@ -14,7 +14,7 @@ export class Chorus extends Effector {
     public feedback: number = 0.2;
     public strictMode: StrictMode = StrictMode.Disabled;
 
-    constructor({ baseDelayMs, depthMs, rateHz, mix, feedback, strictMode }: Partial<ChorusEffectOptions>) {
+    constructor({ baseDelayMs, depthMs, rateHz, mix, feedback, strictMode }: Partial<ChorusEffectOptions> = {}) {
         super();
 
         this.baseDelayMs = Math.max(0, coerceFiniteNumber(baseDelayMs, this.baseDelayMs));

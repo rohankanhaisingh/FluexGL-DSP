@@ -61,10 +61,10 @@ export class Channel {
         this.input.disconnect();
 
         for (const effect of this.effects)
-            effect.audioWorkletNode?.disconnect();
+            effect.outputNode?.disconnect();
 
         const activeEffects = this.effects.filter(function (e: Effector): boolean {
-            return !!e.audioWorkletNode;
+            return !!(e.inputNode && e.outputNode);
         });
 
         if (activeEffects.length === 0) {
@@ -72,17 +72,17 @@ export class Channel {
             return;
         }
 
-        this.input.connect(activeEffects[0].audioWorkletNode as AudioNode);
+        this.input.connect(activeEffects[0].inputNode as AudioNode);
 
         for (let i: number = 0; i < activeEffects.length - 1; i++) {
 
-            const current = activeEffects[i].audioWorkletNode as AudioNode;
-            const next = activeEffects[i + 1].audioWorkletNode as AudioNode;
+            const current = activeEffects[i].outputNode as AudioNode;
+            const next = activeEffects[i + 1].inputNode as AudioNode;
 
             current.connect(next);
         }
 
-        (activeEffects[activeEffects.length - 1].audioWorkletNode as AudioNode).connect(this.stereoPannerNode);
+        (activeEffects[activeEffects.length - 1].outputNode as AudioNode).connect(this.stereoPannerNode);
     }
 
     private disconnectAudioNodes(gc?: boolean) {
@@ -94,7 +94,7 @@ export class Channel {
         this.output?.disconnect();
 
         for (const effect of this.effects) {
-            effect.audioWorkletNode?.disconnect();
+            effect.outputNode?.disconnect();
         }
 
         if (gc) {
@@ -178,7 +178,7 @@ export class Channel {
                 self.effects.splice(index, 1);
         });
 
-        effect.audioWorkletNode?.disconnect();
+        effect.outputNode?.disconnect();
 
         this.rebuildEffectChainInternal();
     }
@@ -270,7 +270,7 @@ export class Channel {
         if (!this.context) throw new Error("Could not set volume on channel, because it's context is undefined.");
         if (!this.gainNode) throw new Error("Could not set volume on channel, because it's GainNode is undefined.")
 
-        volume && this.gainNode.gain.setValueAtTime(volume, this.context.currentTime);
+        if (volume !== undefined) this.gainNode.gain.setValueAtTime(volume, this.context.currentTime);
         return volume ?? this.gainNode.gain.value;
     }
 
@@ -279,7 +279,7 @@ export class Channel {
         if (!this.context) throw new Error("Could not set pan on channel, because it's context is undefined.");
         if (!this.stereoPannerNode) throw new Error("Cannot set pan on channel, because it's StereoPannerNode is undefined.");
 
-        pan && this.stereoPannerNode.pan.setValueAtTime(pan, this.context.currentTime);
+        if (pan !== undefined) this.stereoPannerNode.pan.setValueAtTime(pan, this.context.currentTime);
         return pan ?? this.stereoPannerNode.pan.value;
     }
 

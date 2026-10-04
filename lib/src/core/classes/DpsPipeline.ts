@@ -50,8 +50,16 @@ export class DspPipeline {
         this.pathToWasm = pathToWasm;
         this.pathToWorklet = pathToWorklet;
 
-        // @ts-ignore
-        for(const key in options) DSP[key] = options[key];
+        // Nested option objects (such as debugger) are merged, so a partial object keeps the other defaults.
+        for (const key in options) {
+
+            const value = (options as Record<string, unknown>)[key];
+            const current = (DSP as unknown as Record<string, unknown>)[key];
+
+            (DSP as unknown as Record<string, unknown>)[key] = value && current && typeof value === "object" && typeof current === "object"
+                ? { ...current, ...value }
+                : value;
+        }
     }
 
     /**

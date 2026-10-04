@@ -9,7 +9,7 @@ export declare class Chorus extends Effector {
     mix: number;
     feedback: number;
     strictMode: StrictMode;
-    constructor({ baseDelayMs, depthMs, rateHz, mix, feedback, strictMode }: Partial<ChorusEffectOptions>);
+    constructor({ baseDelayMs, depthMs, rateHz, mix, feedback, strictMode }?: Partial<ChorusEffectOptions>);
     initializeOnAttachment(context: AudioContext): Promise<void>;
     returnOptionsAsObject(): ChorusEffectOptions;
     setBaseDelayMs(value: number): boolean;

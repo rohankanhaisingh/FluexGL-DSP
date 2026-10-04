@@ -7,7 +7,7 @@ export declare class LowPassFilter extends Effector {
     q: number;
     minFrequency: number;
     strictMode: StrictMode;
-    constructor({ cutoff, minFrequency, q, strictMode }: Partial<LowPassFilterOptions>);
+    constructor({ cutoff, minFrequency, q, strictMode }?: Partial<LowPassFilterOptions>);
     initializeOnAttachment(context: AudioContext): Promise<void>;
     returnOptionsAsObject(): LowPassFilterOptions;
     setCutoff(cutoff?: number): boolean;
