@@ -3,7 +3,7 @@ import { v4 } from "uuid";
 import { AudioDevice } from "./AudioDevice";
 import { Debug } from "../../utilities/debugger";
 import { LoadWebAssemblyModule } from "../../utilities/web-assembly";
-import { constructProcessorWorklet, loadWorkletOnAudioDevice } from "../../utilities/helpers";
+import { constructProcessorWorklet, findDefaultAudioDevice, loadWorkletOnAudioDevice } from "../../utilities/helpers";
 
 import { ErrorCodes, WarningCodes } from "../../console-codes";
 import { DspPipelineInitializationOptions } from "../../typings";
@@ -139,20 +139,14 @@ export class DspPipeline {
             return null;
         }
 
-        const audioDeviceInfos: MediaDeviceInfo[] = [];
-        const devices = await navigator.mediaDevices.enumerateDevices();
+        const deviceInfo: MediaDeviceInfo | null = await findDefaultAudioDevice("audiooutput");
 
-        for (let device of devices)
-            (device.kind === "audiooutput" && device.deviceId === "default") &&
-                audioDeviceInfos.push(device);
-
-        devices.length === 0 &&
+        if (!deviceInfo) {
             Debug.warn("No default audio device found.", [], WarningCodes.NO_DEFAULT_AUDIO_DEVICE_FOUND);
+            return null;
+        }
 
-        const defaultAudioDevice =
-            devices.length === 0 ? null : new AudioDevice(audioDeviceInfos[0]);
-
-        if (!defaultAudioDevice) return null;
+        const defaultAudioDevice = new AudioDevice(deviceInfo);
 
         await loadWorkletOnAudioDevice(defaultAudioDevice, this.blobUrl);
 

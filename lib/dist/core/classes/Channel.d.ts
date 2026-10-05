@@ -14,6 +14,8 @@ export declare class Channel {
     effects: Effector[];
     context: AudioContext | null;
     sends: Channel[];
+    /** Master channels this channel is attached to. Maintained by {@link Master.attachChannel} and {@link Master.detachChannel}. */
+    masters: Master[];
     audioClipPlayer: AudioClipPlayer | null;
     constructor(context: AudioContext, label?: string);
     private rebuildEffectChainInternal;
@@ -34,9 +36,27 @@ export declare class Channel {
     detachEffect(effect: Effector): void;
     detachAllEffects(): void;
     send(channel: Channel | Master): void;
-    unsend(channel: Channel | Master): void;
+    /**
+     * Stops sending the signal of this channel to the given channel or master channel.
+     * Unsending from a target this channel is not sent to does nothing, so it is safe to call at any time.
+     *
+     * @returns `true` when the link has been removed, `false` when there was no link.
+     */
+    unsend(channel: Channel | Master): boolean;
+    /**
+     * Whether the signal of this channel is sent to the given channel or master channel.
+     */
+    isSentTo(channel: Channel | Master): boolean;
     hasAudioClipPlayer(): boolean;
     unsendToAllChannels(): void;
+    /**
+     * Detaches this channel from every master channel it is attached to.
+     */
+    unsendFromAllMasters(): void;
+    /**
+     * Removes every outgoing link of this channel, both to channels and to master channels.
+     */
+    unsendFromAll(): void;
     attachAudioClip(audioClip: AudioClip): Channel;
     volume(volume?: number): number;
     pan(pan?: number): number;

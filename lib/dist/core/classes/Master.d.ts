@@ -17,7 +17,18 @@ export declare class Master {
     attachEffect(effect: Effector): void;
     detachEffect(effect: Effector): void;
     attachChannel(channel: Channel): void;
-    detachChannel(channel: Channel): void;
+    /**
+     * Detaches the channel from this master channel. Detaching a channel that is not attached
+     * only logs a warning, so it is safe to call at any time.
+     *
+     * @returns `true` when the channel has been detached, `false` when it was not attached.
+     */
+    detachChannel(channel: Channel): boolean;
+    /**
+     * Detaches all channels from this master channel.
+     */
+    detachAllChannels(): void;
+    hasChannel(channel: Channel): boolean;
     hasAudioClipPlayer(): boolean;
     attachAudioClip(audioClip: AudioClip): void;
 }

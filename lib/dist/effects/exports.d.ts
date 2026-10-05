@@ -5,6 +5,7 @@ export { Equalizer } from "./classes/Equalizer";
 export { Limiter } from "./classes/Limiter";
 export { Saturation } from "./classes/Saturation";
 export { StereoPanner } from "./classes/StereoPanner";
+export { StereoMono } from "./classes/StereoMono";
 export { SoftClip } from "./classes/clips/SoftClip";
 export { HardClip } from "./classes/clips/HardClip";
 export { Reverb, type ReverbOptions } from "./classes/Reverb";

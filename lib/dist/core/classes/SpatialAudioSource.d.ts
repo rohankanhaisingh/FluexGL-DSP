@@ -3,11 +3,12 @@ import { AudioClipPlayer } from "./AudioClipPlayer";
 import { SpatialAttenuationOptions, SpatialAudioSourceOptions, SpatialSourceState, Vector3 } from "../../typings";
 import type { SpatialAudioVoice } from "./SpatialAudioVoice";
 import type { SpatialAudioRenderer } from "./SpatialAudioRenderer";
+import type { Channel } from "./Channel";
 /**
  * A positioned sound emitter in a 2D or 3D scene. The 2D renderer ignores the z coordinate.
  *
- * Audio clips attached to a source are routed through the source's own
- * gain stage (volume and distance attenuation), and from there into a
+ * Audio clips and channels (for example an InputChannel with a voice) attached
+ * to a source are routed through the source's own gain stage (volume and distance attenuation), and from there into a
  * voice of the renderer. Depending on the distance to the listener the
  * source either has its own voice, or shares one with nearby sources.
  */
@@ -37,11 +38,14 @@ export declare class SpatialAudioSource {
     /** The gain (volume x attenuation) last sent to the audio thread. Managed by the renderer. */
     renderedGain: number;
     private pendingAudioClips;
+    /** Channels routed through this source. Connected once the source is initialized. */
+    private attachedChannels;
     constructor(options?: Partial<SpatialAudioSourceOptions>);
     /**
      * Creates the audio nodes of this source. Called by the renderer when the source is added.
      */
     initialize(renderer: SpatialAudioRenderer, context: AudioContext): void;
+    private connectChannel;
     /**
      * Whether the source is audible, but not rendered because the voice budget of the
      * renderer (maxVoices) is used by louder sources.
@@ -58,6 +62,25 @@ export declare class SpatialAudioSource {
      */
     attachAudioClip(audioClip: AudioClip): SpatialAudioSource;
     detachAudioClip(audioClip: AudioClip): SpatialAudioSource;
+    /**
+     * Routes the output of a channel through this source, so it is positioned in the scene.
+     * Works with any channel, such as an InputChannel carrying a microphone or the voice of
+     * another player (see {@link InputChannel.setMediaStream}). Effects on the channel are applied
+     * before the spatialization. Can be called before the source is added to a renderer.
+     *
+     * The channel should not be sent to a master channel as well, otherwise it is also heard unpositioned.
+     *
+     * @example
+     * ```
+     * const voice = audioDevice.createChannel("Player 2");
+     * voice.attachEffect(new HighPassFilter({ cutoff: 300 }));
+     *
+     * renderer.createSource({ position: { x: 10, y: 0, z: -5 } }).attachChannel(voice);
+     * ```
+     */
+    attachChannel(channel: Channel): SpatialAudioSource;
+    detachChannel(channel: Channel): SpatialAudioSource;
+    get channels(): Channel[];
     get audioClips(): AudioClip[];
     stopAll(): SpatialAudioSource;
     /**

@@ -3,17 +3,18 @@ import { v4 } from "uuid";
 import { AudioClip } from "./AudioClip";
 import { AudioClipPlayer } from "./AudioClipPlayer";
 import { Debug } from "../../utilities/debugger";
-import { ErrorCodes } from "../../console-codes";
+import { ErrorCodes, WarningCodes } from "../../console-codes";
 import { SpatialAttenuationOptions, SpatialAudioSourceOptions, SpatialSourceState, Vector3 } from "../../typings";
 
 import type { SpatialAudioVoice } from "./SpatialAudioVoice";
 import type { SpatialAudioRenderer } from "./SpatialAudioRenderer";
+import type { Channel } from "./Channel";
 
 /**
  * A positioned sound emitter in a 2D or 3D scene. The 2D renderer ignores the z coordinate.
  *
- * Audio clips attached to a source are routed through the source's own
- * gain stage (volume and distance attenuation), and from there into a
+ * Audio clips and channels (for example an InputChannel with a voice) attached
+ * to a source are routed through the source's own gain stage (volume and distance attenuation), and from there into a
  * voice of the renderer. Depending on the distance to the listener the
  * source either has its own voice, or shares one with nearby sources.
  */
@@ -53,6 +54,9 @@ export class SpatialAudioSource {
     public renderedGain: number = 0;
 
     private pendingAudioClips: AudioClip[] = [];
+
+    /** Channels routed through this source. Connected once the source is initialized. */
+    private attachedChannels: Channel[] = [];
 
     constructor(options?: Partial<SpatialAudioSourceOptions>) {
 
@@ -97,6 +101,21 @@ export class SpatialAudioSource {
 
         for (const clip of pending)
             this.audioClipPlayer.attachAudioClip(clip);
+
+        for (const channel of this.attachedChannels)
+            this.connectChannel(channel);
+    }
+
+    private connectChannel(channel: Channel): void {
+
+        if (!this.input || !channel.output) return;
+
+        if (channel.context !== this.context) return Debug.error("Could not route the channel through this SpatialAudioSource, because they do not share the same AudioContext.", [
+            `SpatialAudioSource id: ${this.id}`,
+            `Channel id: ${channel.id}`
+        ], ErrorCodes.CHANNEL_NOT_SAME_AUDIO_CONTEXT);
+
+        channel.output.connect(this.input);
     }
 
     /**
@@ -165,6 +184,59 @@ export class SpatialAudioSource {
         return this;
     }
 
+    /**
+     * Routes the output of a channel through this source, so it is positioned in the scene.
+     * Works with any channel, such as an InputChannel carrying a microphone or the voice of
+     * another player (see {@link InputChannel.setMediaStream}). Effects on the channel are applied
+     * before the spatialization. Can be called before the source is added to a renderer.
+     *
+     * The channel should not be sent to a master channel as well, otherwise it is also heard unpositioned.
+     *
+     * @example
+     * ```
+     * const voice = audioDevice.createChannel("Player 2");
+     * voice.attachEffect(new HighPassFilter({ cutoff: 300 }));
+     *
+     * renderer.createSource({ position: { x: 10, y: 0, z: -5 } }).attachChannel(voice);
+     * ```
+     */
+    public attachChannel(channel: Channel): SpatialAudioSource {
+
+        if (this.attachedChannels.includes(channel)) return this;
+
+        if (channel.masters.length > 0) Debug.warn("The channel attached to this SpatialAudioSource is also sent to a master channel, so it is heard unpositioned as well.", [
+            "Call channel.unsendFromAllMasters() if only the positioned sound should be heard.",
+            `Channel id: ${channel.id}`
+        ], WarningCodes.CHANNEL_ALSO_SENT_TO_MASTER);
+
+        this.attachedChannels.push(channel);
+        this.connectChannel(channel);
+        return this;
+    }
+
+    public detachChannel(channel: Channel): SpatialAudioSource {
+
+        const idx: number = this.attachedChannels.indexOf(channel);
+
+        if (idx === -1) return this;
+
+        this.attachedChannels.splice(idx, 1);
+
+        if (channel.output && this.input) {
+            try {
+                channel.output.disconnect(this.input);
+            } catch {
+                // Not connected (yet), which is the desired end state anyway.
+            }
+        }
+
+        return this;
+    }
+
+    public get channels(): Channel[] {
+        return [...this.attachedChannels];
+    }
+
     public get audioClips(): AudioClip[] {
         return this.audioClipPlayer ? this.audioClipPlayer.audioClips : this.pendingAudioClips;
     }
@@ -181,6 +253,10 @@ export class SpatialAudioSource {
     public dispose(): void {
 
         this.audioClipPlayer?.dispose();
+
+        for (const channel of [...this.attachedChannels])
+            this.detachChannel(channel);
+
         this.input?.disconnect();
         this.output?.disconnect();
 

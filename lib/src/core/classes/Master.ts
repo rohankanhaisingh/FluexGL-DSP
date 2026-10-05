@@ -5,7 +5,7 @@ import { Debug } from "../../utilities/debugger";
 import { Effector } from "./Effector";
 import { AudioClipPlayer } from "./AudioClipPlayer";
 import { AudioClip } from "./AudioClip";
-import { ErrorCodes } from "../../console-codes";
+import { ErrorCodes, WarningCodes } from "../../console-codes";
 
 export class Master {
 
@@ -113,6 +113,7 @@ export class Master {
         ], ErrorCodes.CHANNEL_ALREADY_ATTACHED);
 
         this.channels.push(channel);
+        channel.masters.push(this);
 
         if (channel.output && this.input)
             channel.output.connect(this.input);
@@ -120,22 +121,51 @@ export class Master {
         return;
     }
 
-    public detachChannel(channel: Channel): void {
+    /**
+     * Detaches the channel from this master channel. Detaching a channel that is not attached
+     * only logs a warning, so it is safe to call at any time.
+     *
+     * @returns `true` when the channel has been detached, `false` when it was not attached.
+     */
+    public detachChannel(channel: Channel): boolean {
 
-        if (!this.channels.includes(channel)) return Debug.error("Could not detach the channel because it is not part of this master channel.", [
-            "Call .attachChannel([channel Channel]) before detaching the channel."
-        ], ErrorCodes.CHANNEL_NOT_FOUND);
+        const idx: number = this.channels.indexOf(channel);
 
-        if (channel.output && this.input)
-            channel.output.disconnect(this.input);
+        if (idx === -1) {
+            Debug.warn("Could not detach the channel because it is not attached to this master channel.", [
+                `Channel id: ${channel.id}.`,
+                `Master channel id: ${this.id}.`
+            ], WarningCodes.CHANNEL_NOT_ATTACHED);
+            return false;
+        }
 
-        const self = this;
+        if (channel.output && this.input) {
+            try {
+                channel.output.disconnect(this.input);
+            } catch {
+                // The nodes were not connected (anymore), which is the desired end state anyway.
+            }
+        }
 
-        this.channels.forEach(function (_channel: Channel, index: number) {
-            if (channel.id !== _channel.id) return;
+        this.channels.splice(idx, 1);
 
-            self.channels.splice(index, 1);
-        });
+        const masterIdx: number = channel.masters.indexOf(this);
+
+        if (masterIdx >= 0) channel.masters.splice(masterIdx, 1);
+
+        return true;
+    }
+
+    /**
+     * Detaches all channels from this master channel.
+     */
+    public detachAllChannels(): void {
+        for (const channel of [...this.channels])
+            this.detachChannel(channel);
+    }
+
+    public hasChannel(channel: Channel): boolean {
+        return this.channels.includes(channel);
     }
 
     public hasAudioClipPlayer(): boolean {

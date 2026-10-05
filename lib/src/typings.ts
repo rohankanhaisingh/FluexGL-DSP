@@ -12,6 +12,14 @@ export type EffectorEvents = {
     [K in keyof EffectorEventMap]: EffectorEventMap[K][];
 }
 
+export type AudioDeviceEvents = {
+    [K in keyof AudioDeviceEventMap]: AudioDeviceEventMap[K][];
+}
+
+export type InputChannelEvents = {
+    [K in keyof InputChannelEventMap]: InputChannelEventMap[K][];
+}
+
 export enum LowPassFilterMessageCommandId {
     SetCutoff,
     SetMinFrequency,
@@ -166,6 +174,53 @@ export interface AudioClipEventMap {
     "progress": (event: AudioClipOnProgressEvent) => void;
     "initialize": (event: AudioClipOnInitializeEvent) => void;
     "play": (event: AudioClipOnPlayEvent) => void;
+}
+
+export interface AudioDeviceChangedEvent {
+    /** The device that was used before the switch. `null` when unknown or when nothing was opened. */
+    previous: MediaDeviceInfo | null;
+    /** The device that is used now. `null` when the browser does not expose the device info. */
+    current: MediaDeviceInfo | null;
+    timestamp: number;
+}
+
+export interface AudioDeviceLostEvent {
+    /** The device that has been disconnected. */
+    lost: MediaDeviceInfo | null;
+    timestamp: number;
+}
+
+export interface AudioDeviceListChangedEvent {
+    inputs: MediaDeviceInfo[];
+    outputs: MediaDeviceInfo[];
+    timestamp: number;
+}
+
+export interface AudioDeviceEventMap {
+    "output-device-changed": (event: AudioDeviceChangedEvent) => void;
+    /** Fired when the selected output device is disconnected. The audio device then falls back to the default output device. */
+    "output-device-lost": (event: AudioDeviceLostEvent) => void;
+    /** Fired when an audio input or output device is connected or disconnected. */
+    "devices-changed": (event: AudioDeviceListChangedEvent) => void;
+}
+
+export interface InputChannelEventMap {
+    "input-device-changed": (event: AudioDeviceChangedEvent) => void;
+    /** Fired when the input device is disconnected. When fallbackToDefault is enabled, the default input device is opened afterwards. */
+    "input-device-lost": (event: AudioDeviceLostEvent) => void;
+}
+
+export interface InputChannelOptions {
+    /** Browser echo cancellation. Disabled by default, so the signal reaches the effects unprocessed. */
+    echoCancellation: boolean;
+    /** Browser noise suppression. Disabled by default. */
+    noiseSuppression: boolean;
+    /** Browser automatic gain control. Disabled by default. */
+    autoGainControl: boolean;
+    /** Preferred amount of input channels (1 = mono, 2 = stereo). `null` lets the browser decide. */
+    channelCount: number | null;
+    /** Whether the default input device is opened when the current input device gets disconnected. Enabled by default. */
+    fallbackToDefault: boolean;
 }
 
 export interface DspPipelineInitializationOptions {
@@ -481,6 +536,22 @@ export interface StereoPannerOptions {
     pan: number;
     /** Stereo width, between 0 (mono) and 2 (extra wide). 1 leaves the image unchanged. */
     width: number;
+}
+
+export type StereoMonoMode = "stereo" | "mono" | "swap" | "left" | "right" | "left-to-both" | "right-to-both" | "mid" | "side";
+export type StereoSplitMode = "left-right" | "mid-side";
+
+export interface StereoMonoOptions {
+    /** How the left and right channel are routed. Defaults to "stereo" (unchanged). */
+    mode: StereoMonoMode;
+    /** Delay of the left output (ms), between 0 and 100. */
+    delayLeftMs: number;
+    /** Delay of the right output (ms), between 0 and 100. */
+    delayRightMs: number;
+    /** Inverts the polarity of the left output. */
+    invertLeft: boolean;
+    /** Inverts the polarity of the right output. */
+    invertRight: boolean;
 }
 
 export type MultibandCompressorBandName = "low" | "mid" | "high";

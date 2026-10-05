@@ -23,6 +23,8 @@ export class Channel {
     public context: AudioContext | null = null;
 
     public sends: Channel[] = [];
+    /** Master channels this channel is attached to. Maintained by {@link Master.attachChannel} and {@link Master.detachChannel}. */
+    public masters: Master[] = [];
     public audioClipPlayer: AudioClipPlayer | null = null;
 
     constructor(context: AudioContext, label?: string) {
@@ -231,19 +233,40 @@ export class Channel {
         this.sends.push(channel);
     }
 
-    public unsend(channel: Channel | Master) {
+    /**
+     * Stops sending the signal of this channel to the given channel or master channel.
+     * Unsending from a target this channel is not sent to does nothing, so it is safe to call at any time.
+     *
+     * @returns `true` when the link has been removed, `false` when there was no link.
+     */
+    public unsend(channel: Channel | Master): boolean {
 
         if (channel instanceof Master)
-            return (channel as Master).detachChannel(this);
+            return channel.hasChannel(this) && channel.detachChannel(this);
 
         const idx: number = this.sends.indexOf(channel);
 
-        if (idx === -1) return;
+        if (idx === -1) return false;
 
-        if (this.output && channel.input)
-            this.output.disconnect(channel.input);
+        if (this.output && channel.input) {
+            try {
+                this.output.disconnect(channel.input);
+            } catch {
+                // The nodes were not connected (anymore), which is the desired end state anyway.
+            }
+        }
 
         this.sends.splice(idx, 1);
+        return true;
+    }
+
+    /**
+     * Whether the signal of this channel is sent to the given channel or master channel.
+     */
+    public isSentTo(channel: Channel | Master): boolean {
+        return channel instanceof Master
+            ? this.masters.includes(channel)
+            : this.sends.includes(channel);
     }
 
     public hasAudioClipPlayer(): boolean {
@@ -251,10 +274,24 @@ export class Channel {
     }
 
     public unsendToAllChannels() {
-        for (var i: number = 0; i < this.sends.length; i++) {
-            this.unsend(this.sends[i]);
-            i--;
-        }
+        for (const channel of [...this.sends])
+            this.unsend(channel);
+    }
+
+    /**
+     * Detaches this channel from every master channel it is attached to.
+     */
+    public unsendFromAllMasters() {
+        for (const master of [...this.masters])
+            this.unsend(master);
+    }
+
+    /**
+     * Removes every outgoing link of this channel, both to channels and to master channels.
+     */
+    public unsendFromAll() {
+        this.unsendToAllChannels();
+        this.unsendFromAllMasters();
     }
 
     public attachAudioClip(audioClip: AudioClip): Channel {

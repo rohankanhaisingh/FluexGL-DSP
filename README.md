@@ -55,6 +55,57 @@ import { DspPipeline, Channel, LoadAudioSource, AudioClip } from "@fluex/fluexgl
 })();
 ```
 
+## 🎙️ Input and output devices
+
+Input devices (microphones, line-ins) are opened as an `InputChannel`, which works like any other channel: effects, volume, panning and sends.
+Both input and output devices can be switched at runtime, without rebuilding the audio graph or reloading the page.
+
+```ts
+import { listAudioInputDevices, listAudioOutputDevices, watchAudioDevices } from "@fluex/fluexgl-dsp";
+
+const master = audioDevice.getMasterChannel();
+
+// Open the default input device, and monitor it through the master channel.
+const microphone = await audioDevice.createInputChannel(null, "Microphone");
+microphone.send(master);
+
+// Switch devices at any time.
+const inputs = await listAudioInputDevices();
+const outputs = await listAudioOutputDevices();
+
+await microphone.setInputDevice(inputs[1]);
+await audioDevice.setOutputDevice(outputs[1]); // Requires AudioContext.setSinkId() support.
+
+// Keep a device menu up to date when devices are plugged in or out.
+watchAudioDevices(({ inputs, outputs }) => renderDeviceMenu(inputs, outputs));
+```
+
+When a selected device is disconnected, the audio device or input channel falls back to the default device and fires an `output-device-lost` or `input-device-lost` event.
+
+## 🔀 Splitting and merging (stereo/mono)
+
+The `StereoMono` effect routes the left and right channel of a signal: `stereo`, `mono`, `swap`, `left`, `right`, `left-to-both`, `right-to-both`, `mid` and `side`, with an optional delay and polarity inversion per side.
+
+`StereoMono.split()` splits a channel into two branches that can be processed separately. Merging is done by sending both branches to the same channel. Splits are lossless: `left` + `right` and `mid` + `side` add up to the original signal.
+
+```ts
+import { StereoMono, LowPassFilter } from "@fluex/fluexgl-dsp";
+
+const source = audioDevice.createChannel("Source");
+const surround = audioDevice.createChannel("Surround");
+
+// Pseudo surround: keep the mid as is, and turn the side signal into a diffuse "rear".
+const [mid, side] = StereoMono.split(source, "mid-side");
+
+(side.effects[0] as StereoMono).setDelayRight(18);
+side.attachEffect(new LowPassFilter({ cutoff: 7000 }));
+side.volume(1.4);
+
+mid.send(surround);
+side.send(surround);
+surround.send(audioDevice.getMasterChannel());
+```
+
 ## 💡 Effects, tools and more
 FluexGL DSP provides built-in such as effects, tools, and utilities for advanced web audio processing, such as reverbs, delays, and stereo imaging effects.
 
