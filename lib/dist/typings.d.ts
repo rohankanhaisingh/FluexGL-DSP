@@ -1,3 +1,5 @@
+import type { Channel } from "./core/classes/Channel";
+import type { Master } from "./core/classes/Master";
 export type ChannelSpatialization = "mono" | "stereo" | "surround";
 export type AudioClipAnalyserType = "pre" | "post";
 export type AudioClipAnalyserProperty = "fftSize" | "minDecibels" | "maxDecibels" | "smoothingTimeConstant";
@@ -314,6 +316,11 @@ export interface SpatialAudioSourceOptions extends SpatialAttenuationOptions {
     reverbSendFactor: number;
     /** Whether the distance based lowpass filter is applied to this source. */
     airAbsorption: boolean;
+    /**
+     * Bus the (dry) sound of this source ends up on, for example an "Entities" or "Ambience" channel.
+     * Null uses the output of the renderer. Sources only share a voice with sources on the same bus.
+     */
+    bus: Channel | Master | null;
 }
 export interface SpatialAudioListenerOptions {
     position: Vector2;
@@ -375,6 +382,18 @@ export interface SpatialAudioRendererOptions extends SpatialAttenuationOptions {
      * Pass false to disable it, or options to configure it. Enabled by default.
      */
     limiter: boolean | Partial<LimiterOptions>;
+    /**
+     * Where the renderer sends its sound (and its reverb): a bus channel or a master channel.
+     * By default the renderer creates its own master channel. When an output is given, the limiter
+     * is only added when it is enabled explicitly, since the output is then owned by the game.
+     */
+    output: Channel | Master | null;
+    /**
+     * Time in seconds a source must be without a voice (inaudible, or virtual because of maxVoices) before
+     * its looping sounds are suspended: their audio nodes are released, and recreated at the right
+     * position once the source gets a voice again. Infinity disables it.
+     */
+    loopVirtualizationDelay: number;
 }
 export interface SpatialAudioRenderer2DOptions extends SpatialAudioRendererOptions {
     /** Direction of the y-axis on screen. "down" for canvas-like coordinates, "up" for math-like coordinates. */
@@ -513,5 +532,49 @@ export interface MultibandCompressorOptions {
     high: Partial<MultibandCompressorBandOptions>;
     /** Gain (dB) after the bands are summed, between -24 and 24. */
     outputGain: number;
+}
+/**
+ * What a sound does when it is played while maxInstances are already playing:
+ * "oldest" stops the instance that started first, "quietest" stops the quietest one,
+ * "none" does not play the new instance.
+ */
+export type SoundStealMode = "oldest" | "quietest" | "none";
+export interface SoundOptions {
+    label: string | null;
+    /** Base volume of every instance. */
+    volume: number;
+    /** Random volume reduction per instance, between 0 (none) and 1. 0.2 plays at 80% to 100% of the volume. */
+    volumeVariation: number;
+    /** Base pitch in semitones. */
+    pitch: number;
+    /** Random pitch offset per instance, in semitones (plus or minus). Makes repeated sounds less mechanical. */
+    pitchVariation: number;
+    /** Maximum number of instances of this sound playing at the same time. */
+    maxInstances: number;
+    steal: SoundStealMode;
+    /**
+     * Minimum time in seconds between two starts of this sound. Starts within this window are skipped,
+     * for example when 40 collisions happen in the same frame.
+     */
+    minInterval: number;
+    loop: boolean;
+}
+export interface SoundPlayOptions {
+    /** Multiplied with the volume of the sound. */
+    volume: number;
+    /** Added to the pitch of the sound, in semitones. */
+    pitch: number;
+    loop: boolean;
+    /** Offset into the sound, in seconds. */
+    offset: number;
+    /** AudioContext time at which to start. Defaults to now. */
+    when: number;
+}
+export interface SoundPlayAtOptions extends SoundPlayOptions, Omit<SpatialAudioSourceOptions, "position" | "volume" | "label"> {
+    /**
+     * Whether a one-shot that is inaudible when it starts (too far away) is skipped entirely.
+     * Looping sounds are never skipped. Enabled by default.
+     */
+    cull: boolean;
 }
 //# sourceMappingURL=typings.d.ts.map

@@ -4,11 +4,13 @@ import { AudioClip } from "./AudioClip";
 import { AudioClipPlayer } from "./AudioClipPlayer";
 import { Debug } from "../../utilities/debugger";
 import { ErrorCodes, WarningCodes } from "../../console-codes";
-import { SpatialAttenuationOptions, SpatialAudioSourceOptions, SpatialSourceState, Vector3 } from "../../typings";
+import { SoundPlayOptions, SpatialAttenuationOptions, SpatialAudioSourceOptions, SpatialSourceState, Vector3 } from "../../typings";
 
 import type { SpatialAudioVoice } from "./SpatialAudioVoice";
 import type { SpatialAudioRenderer } from "./SpatialAudioRenderer";
 import type { Channel } from "./Channel";
+import type { Master } from "./Master";
+import type { Sound, SoundInstance } from "./Sound";
 
 /**
  * A positioned sound emitter in a 2D or 3D scene. The 2D renderer ignores the z coordinate.
@@ -28,6 +30,12 @@ export class SpatialAudioSource {
     public clusterable: boolean = true;
     public reverbSendFactor: number = 1;
     public airAbsorption: boolean = true;
+
+    /**
+     * Bus the dry sound of this source ends up on, for example an "Entities" or "Ambience" channel.
+     * Null uses the output of the renderer. Picked up by the renderer on its next update.
+     */
+    public bus: Channel | Master | null = null;
 
     /** Attenuation settings of this source. Missing values fall back to the renderer's settings. */
     public attenuation: Partial<SpatialAttenuationOptions> = {};
@@ -53,14 +61,22 @@ export class SpatialAudioSource {
     /** The gain (volume x attenuation) last sent to the audio thread. Managed by the renderer. */
     public renderedGain: number = 0;
 
+    /** Sound instances playing through this source. Maintained by SoundInstance. */
+    public soundInstances: Set<SoundInstance> = new Set();
+
+    /** Context time since which this source has had no voice, or null. Managed by the renderer for loop virtualization. */
+    public virtualSince: number | null = null;
+
     private pendingAudioClips: AudioClip[] = [];
 
     /** Channels routed through this source. Connected once the source is initialized. */
     private attachedChannels: Channel[] = [];
 
     constructor(options?: Partial<SpatialAudioSourceOptions>) {
+        if (options) this.applyOptions(options);
+    }
 
-        if (!options) return;
+    private applyOptions(options: Partial<SpatialAudioSourceOptions>): void {
 
         if (options.label !== undefined) this.label = options.label;
         if (options.position) this.position = { x: options.position.x, y: options.position.y, z: "z" in options.position ? options.position.z : 0 };
@@ -68,11 +84,51 @@ export class SpatialAudioSource {
         if (options.clusterable !== undefined) this.clusterable = options.clusterable;
         if (options.reverbSendFactor !== undefined) this.reverbSendFactor = Math.max(0, options.reverbSendFactor);
         if (options.airAbsorption !== undefined) this.airAbsorption = options.airAbsorption;
+        if (options.bus !== undefined) this.bus = options.bus;
 
         if (options.distanceModel !== undefined) this.attenuation.distanceModel = options.distanceModel;
         if (options.refDistance !== undefined) this.attenuation.refDistance = options.refDistance;
         if (options.maxDistance !== undefined) this.attenuation.maxDistance = options.maxDistance;
         if (options.rolloffFactor !== undefined) this.attenuation.rolloffFactor = options.rolloffFactor;
+    }
+
+    /**
+     * Restores the default settings and applies the given options, keeping the audio nodes.
+     * Used by the renderer to reuse pooled sources for one-shot sounds (see SpatialAudioRenderer.playAt).
+     */
+    public reset(options?: Partial<SpatialAudioSourceOptions>): SpatialAudioSource {
+
+        this.label = null;
+        this.position = { x: 0, y: 0, z: 0 };
+        this.volume = 1;
+        this.clusterable = true;
+        this.reverbSendFactor = 1;
+        this.airAbsorption = true;
+        this.bus = null;
+        this.attenuation = {};
+        this.state = null;
+        this.audible = false;
+        this.renderedGain = 0;
+        this.virtualSince = null;
+
+        if (this.input && this.context) {
+            this.input.gain.cancelScheduledValues(0);
+            this.input.gain.setValueAtTime(1, this.context.currentTime);
+        }
+
+        if (options) this.applyOptions(options);
+        return this;
+    }
+
+    /** The clip player is only created once a clip is attached, so plain sources stay at two nodes. */
+    private ensureAudioClipPlayer(): AudioClipPlayer | null {
+
+        if (!this.audioClipPlayer && this.context && this.input) {
+            this.audioClipPlayer = new AudioClipPlayer(this.context);
+            (this.audioClipPlayer.outputGainNode as GainNode).connect(this.input);
+        }
+
+        return this.audioClipPlayer;
     }
 
     /**
@@ -91,16 +147,14 @@ export class SpatialAudioSource {
         this.context = context;
         this.input = new GainNode(context);
         this.output = new GainNode(context, { gain: 0 });
-        this.audioClipPlayer = new AudioClipPlayer(context);
 
-        (this.audioClipPlayer.outputGainNode as GainNode).connect(this.input);
         this.input.connect(this.output);
 
         const pending: AudioClip[] = this.pendingAudioClips;
         this.pendingAudioClips = [];
 
         for (const clip of pending)
-            this.audioClipPlayer.attachAudioClip(clip);
+            this.ensureAudioClipPlayer()?.attachAudioClip(clip);
 
         for (const channel of this.attachedChannels)
             this.connectChannel(channel);
@@ -149,6 +203,14 @@ export class SpatialAudioSource {
         return this;
     }
 
+    /**
+     * Routes this source to the given bus channel or master channel. Null uses the output of the renderer.
+     */
+    public setBus(bus: Channel | Master | null): SpatialAudioSource {
+        this.bus = bus;
+        return this;
+    }
+
     public setAttenuation(attenuation: Partial<SpatialAttenuationOptions>): SpatialAudioSource {
         this.attenuation = { ...this.attenuation, ...attenuation };
         return this;
@@ -160,14 +222,16 @@ export class SpatialAudioSource {
      */
     public attachAudioClip(audioClip: AudioClip): SpatialAudioSource {
 
-        if (!this.audioClipPlayer) {
+        const player: AudioClipPlayer | null = this.ensureAudioClipPlayer();
+
+        if (!player) {
             if (!this.pendingAudioClips.includes(audioClip))
                 this.pendingAudioClips.push(audioClip);
 
             return this;
         }
 
-        this.audioClipPlayer.attachAudioClip(audioClip);
+        player.attachAudioClip(audioClip);
         return this;
     }
 
@@ -241,8 +305,39 @@ export class SpatialAudioSource {
         return this.audioClipPlayer ? this.audioClipPlayer.audioClips : this.pendingAudioClips;
     }
 
+    /**
+     * Plays a sound through this source, so it is positioned at (and moves with) this source. Every
+     * instance gets its own volume; the source volume applies on top. Looping instances are
+     * suspended automatically while the source has no voice. The source must be added to a renderer first.
+     * Returns null when the start was skipped (see SoundOptions.minInterval and maxInstances).
+     *
+     * @example
+     * ```
+     * const npc = renderer.createSource({ position: npc.position, bus: entitiesBus });
+     * npc.play(footstep, { volume: 0.6 });
+     * const engine = npc.play(engineLoop, { loop: true });
+     * ```
+     */
+    public play(sound: Sound, options?: Partial<SoundPlayOptions>): SoundInstance | null {
+
+        if (!this.context || !this.input) {
+            Debug.error("Could not play sound, because the SpatialAudioSource is not initialized.", [
+                "Add the source to a renderer (renderer.addSource or renderer.createSource) before playing sounds on it.",
+                `SpatialAudioSource id: ${this.id}`
+            ], ErrorCodes.CHANNEL_NOT_INITIALIZED);
+            return null;
+        }
+
+        return sound.createInstance({ context: this.context, destination: this.input, options, owner: this });
+    }
+
     public stopAll(): SpatialAudioSource {
+
         this.audioClipPlayer?.stopAll();
+
+        for (const instance of Array.from(this.soundInstances))
+            instance.stop();
+
         return this;
     }
 
@@ -251,6 +346,9 @@ export class SpatialAudioSource {
      * reference this source; use renderer.removeSource() instead of calling this directly.
      */
     public dispose(): void {
+
+        for (const instance of Array.from(this.soundInstances))
+            instance.stop(0);
 
         this.audioClipPlayer?.dispose();
 

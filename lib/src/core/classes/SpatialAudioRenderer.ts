@@ -5,9 +5,11 @@ import { Channel } from "./Channel";
 import { Effector } from "./Effector";
 import { SpatialAudioSource } from "./SpatialAudioSource";
 import { SpatialAudioVoice, SpatialVoiceParameters } from "./SpatialAudioVoice";
+import type { Sound, SoundInstance } from "./Sound";
 import { Reverb } from "../../effects/classes/Reverb";
 import { Limiter } from "../../effects/classes/Limiter";
 import { Debug } from "../../utilities/debugger";
+import { ErrorCodes } from "../../console-codes";
 import { hasInitializedWasm } from "../../utilities/web-assembly";
 import {
     SpatialAttenuationOptions,
@@ -16,12 +18,14 @@ import {
     SpatialClusteringOptions,
     SpatialPanningModel,
     SpatialSourceState,
+    SoundPlayAtOptions,
+    Vector2,
     Vector3
 } from "../../typings";
 
 import type { AudioDevice } from "./AudioDevice";
 
-export type ResolvedSpatialRendererOptions = Omit<SpatialAudioRendererOptions, "clustering" | "limiter">;
+export type ResolvedSpatialRendererOptions = Omit<SpatialAudioRendererOptions, "clustering" | "limiter" | "output">;
 
 /** Multiplier on the clustering thresholds before a member is kicked out of its cluster. Prevents flapping. */
 const CLUSTER_HYSTERESIS: number = 1.25;
@@ -31,6 +35,9 @@ const AUDIBLE_HYSTERESIS: number = 2;
 
 /** A virtual source takes over a voice only when it is this much louder than the quietest rendered source. */
 const VOICE_STEAL_FACTOR: number = 1.5;
+
+/** Maximum number of sources kept for reuse by playAt(). */
+const MAX_POOLED_SOURCES: number = 256;
 
 /** A gain change smaller than this fraction is not sent to the audio thread. */
 const GAIN_DEADBAND: number = 0.005;
@@ -60,7 +67,8 @@ const DEFAULT_OPTIONS: ResolvedSpatialRendererOptions = {
     reverbMinSend: 0.05,
     reverbMaxSend: 0.6,
     silenceThreshold: 0.001,
-    maxVoices: 64
+    maxVoices: 64,
+    loopVirtualizationDelay: 0.5
 }
 
 const DEFAULT_CLUSTERING: SpatialClusteringOptions = {
@@ -86,6 +94,8 @@ export interface SpatialRendererStats {
     clusters: number;
     /** Empty voices kept for reuse. */
     pooledVoices: number;
+    /** Looping sound instances whose audio node is released, because their source has no voice. */
+    suspendedLoops: number;
 }
 
 export interface SpatialClusterInfo {
@@ -100,7 +110,9 @@ export interface SpatialClusterInfo {
 /**
  * Shared implementation of the 2D and 3D spatial audio renderers.
  *
- * Every renderer has its own master channel. Per source, the distance to the listener
+ * The renderer sends its sound to its own master channel, or to the `output` given in the options
+ * (for example a bus channel). Every source can be routed to its own bus as well (see
+ * {@link SpatialAudioSource.bus}); sources only share a voice with sources on the same bus. Per source, the distance to the listener
  * determines the volume, the cutoff of a lowpass filter (air absorption) and the amount
  * of reverb. The direction determines the panning.
  *
@@ -116,13 +128,18 @@ export abstract class SpatialAudioRenderer {
     public label: string | null = null;
 
     public context: AudioContext;
-    public master: Master;
 
-    /** Bus that receives the reverb sends of all voices. Sent into the master channel. */
+    /** The master channel of the renderer. Null when the output given in the options is a (bus) channel. */
+    public master: Master | null;
+
+    /** Where the sound (and reverb) of the renderer goes, unless a source has a bus of its own. */
+    public output: Channel | Master;
+
+    /** Bus that receives the reverb sends of all voices. Sent into the output. */
     public reverbChannel: Channel;
     public reverbEffect: Effector | null = null;
 
-    /** Safety limiter on the master channel, so many sources at once do not clip. Null when disabled. */
+    /** Safety limiter on the output, so many sources at once do not clip. Null when disabled. */
     public limiter: Limiter | null = null;
 
     public sources: SpatialAudioSource[] = [];
@@ -137,13 +154,18 @@ export abstract class SpatialAudioRenderer {
     /** Empty voices kept for reuse, so voices (and their HRTF panners) are not constantly recreated. */
     private voicePool: SpatialAudioVoice[] = [];
 
+    /** Sources kept for reuse by playAt(), so one-shots do not create audio nodes every time. */
+    private sourcePool: SpatialAudioSource[] = [];
+
+    private disposed: boolean = false;
+
     private useDefaultReverb: boolean = true;
     private animationFrameId: number | null = null;
     private intervalId: number | null = null;
 
     constructor(target: AudioDevice | AudioContext, options?: Partial<SpatialAudioRendererOptions>) {
 
-        const { clustering, limiter, ...rest } = options ?? {};
+        const { clustering, limiter, output, ...rest } = options ?? {};
 
         this.options = { ...DEFAULT_OPTIONS, ...rest };
         this.clustering = { ...DEFAULT_CLUSTERING, ...clustering };
@@ -151,21 +173,29 @@ export abstract class SpatialAudioRenderer {
 
         this.validateClusteringOptions();
 
-        if (target instanceof BaseAudioContext) {
-            this.context = target;
-            this.master = new Master(target);
+        this.context = target instanceof BaseAudioContext ? target : target.context;
+
+        if (output) {
+
+            if (output.context !== this.context) Debug.error("The output of the SpatialAudioRenderer does not share the same AudioContext as the renderer.", [
+                `Output id: ${output.id}`
+            ], ErrorCodes.CHANNEL_NOT_SAME_AUDIO_CONTEXT);
+
+            this.output = output;
+            this.master = output instanceof Master ? output : null;
         } else {
-            this.context = target.context;
-            this.master = target.createMasterChannel();
+            this.master = target instanceof BaseAudioContext ? new Master(target) : target.createMasterChannel();
+            this.output = this.master;
         }
 
-        if (limiter !== false) {
+        // The limiter is on by default for the renderer's own master, but a given output is owned by the game.
+        if (output ? limiter !== undefined && limiter !== false : limiter !== false) {
             this.limiter = new Limiter(typeof limiter === "object" ? limiter : undefined);
-            this.master.attachEffect(this.limiter);
+            this.output.attachEffect(this.limiter);
         }
 
         this.reverbChannel = new Channel(this.context, "Spatial reverb");
-        this.reverbChannel.send(this.master);
+        this.reverbChannel.send(this.output);
 
         this.applyReverbEffect(null);
         this.ensureDefaultReverb();
@@ -224,6 +254,84 @@ export abstract class SpatialAudioRenderer {
             this.reverbChannel.gainNode.gain.value = effect ? 1 : 0;
 
         return this;
+    }
+
+    /**
+     * Plays a sound at a position, fire-and-forget: for sounds that do not belong to a long-living
+     * object, such as explosions, impacts, collisions and bullet hits. The source is borrowed from a
+     * pool and returned once the sound has ended.
+     *
+     * One-shots that are inaudible when they start (too far away) are skipped entirely, unless
+     * `cull` is false. Returns null when the sound was skipped, either because of that or because
+     * of the limits of the sound (maxInstances, minInterval).
+     *
+     * @example
+     * ```
+     * renderer.playAt(explosion, { x: 400, y: 0, z: -900 }, { bus: effectsBus });
+     *
+     * // A sound that follows a moving object:
+     * const whoosh = renderer.playAt(rocketLoop, rocket.position, { loop: true });
+     * whoosh?.setPosition(rocket.x, rocket.y, rocket.z); // every frame
+     * whoosh?.stop(0.1);                                // on impact
+     * ```
+     */
+    public playAt(sound: Sound, position: Vector2 | Vector3, options?: Partial<SoundPlayAtOptions>): SoundInstance | null {
+
+        if (this.disposed) return null;
+
+        const { volume, pitch, loop, offset, when, cull, ...sourceOptions } = options ?? {};
+        const source: SpatialAudioSource = this.sourcePool.pop() ?? new SpatialAudioSource();
+
+        source.reset({ ...sourceOptions, position, volume: sound.options.volume * (volume ?? 1) });
+
+        if (cull !== false && !(loop ?? sound.options.loop)) {
+
+            const gain: number = source.volume * this.computeSourceState(source).attenuation;
+
+            if (gain < this.options.silenceThreshold) {
+                this.sourcePool.push(source);
+                return null;
+            }
+        }
+
+        source.initialize(this, this.context);
+
+        const self: SpatialAudioRenderer = this;
+        const instance: SoundInstance | null = sound.createInstance({
+            context: this.context,
+            destination: source.input as AudioNode,
+            options: { volume, pitch, loop, offset, when },
+            owner: source,
+            exclusive: true,
+            release: function () {
+                self.recycleSource(source);
+            }
+        });
+
+        if (!instance) {
+            this.sourcePool.push(source);
+            return null;
+        }
+
+        this.addSource(source);
+        return instance;
+    }
+
+    /**
+     * Removes a source borrowed by playAt(), and puts it back in the pool once its voice has faded out.
+     */
+    private recycleSource(source: SpatialAudioSource): void {
+
+        this.removeSource(source, false);
+
+        if (this.disposed) return source.dispose();
+
+        const self: SpatialAudioRenderer = this;
+
+        setTimeout(function () {
+            if (!self.disposed && self.sourcePool.length < MAX_POOLED_SOURCES) self.sourcePool.push(source);
+            else source.dispose();
+        }, this.options.crossfadeTime * 1000 + 50);
     }
 
     public createSource(options?: Partial<SpatialAudioSourceOptions>): SpatialAudioSource {
@@ -363,7 +471,46 @@ export abstract class SpatialAudioRenderer {
         for (const voice of this.voices)
             voice.setParameters(mixParameters(voice, parameters), smoothing);
 
+        this.virtualizeLoops(now);
+
         return this;
+    }
+
+    /**
+     * Suspends the looping sounds of sources that have been without a voice for a while, and resumes
+     * them once the source has a voice again. Nobody hears a source without a voice, so there is no
+     * reason to keep its AudioBufferSourceNodes running.
+     */
+    private virtualizeLoops(now: number): void {
+
+        const delay: number = this.options.loopVirtualizationDelay;
+
+        for (const source of this.sources) {
+
+            if (source.soundInstances.size === 0) {
+                source.virtualSince = null;
+                continue;
+            }
+
+            if (source.voice) {
+
+                if (source.virtualSince === null) continue;
+
+                source.virtualSince = null;
+
+                for (const instance of source.soundInstances)
+                    instance.resume();
+
+                continue;
+            }
+
+            if (source.virtualSince === null) source.virtualSince = now;
+
+            if (now - source.virtualSince < delay) continue;
+
+            for (const instance of source.soundInstances)
+                instance.suspend();
+        }
     }
 
     /**
@@ -430,11 +577,14 @@ export abstract class SpatialAudioRenderer {
      */
     public getStats(): SpatialRendererStats {
 
-        let audible = 0, virtual = 0;
+        let audible = 0, virtual = 0, suspendedLoops = 0;
 
         for (const source of this.sources) {
             if (source.audible) audible++;
             if (source.isVirtual) virtual++;
+
+            for (const instance of source.soundInstances)
+                if (instance.isSuspended) suspendedLoops++;
         }
 
         return {
@@ -443,7 +593,8 @@ export abstract class SpatialAudioRenderer {
             virtual,
             voices: this.voices.length,
             clusters: this.voices.filter(voice => voice.isCluster).length,
-            pooledVoices: this.voicePool.length
+            pooledVoices: this.voicePool.length,
+            suspendedLoops
         }
     }
 
@@ -469,6 +620,12 @@ export abstract class SpatialAudioRenderer {
     public dispose(): void {
 
         this.stop();
+        this.disposed = true;
+
+        for (const source of this.sourcePool)
+            source.dispose();
+
+        this.sourcePool = [];
 
         for (const source of Array.from(this.sources))
             this.removeSource(source, true);
@@ -478,7 +635,18 @@ export abstract class SpatialAudioRenderer {
 
         this.voices = [];
         this.voicePool = [];
-        this.reverbChannel.unsend(this.master);
+
+        this.reverbChannel.dispose();
+
+        if (this.limiter && this.output.effects.includes(this.limiter))
+            this.output.detachEffect(this.limiter);
+    }
+
+    /**
+     * The node the dry sound of a source goes to: the input of its bus, or the output of the renderer.
+     */
+    private resolveDestination(source: SpatialAudioSource): AudioNode {
+        return (source.bus?.input ?? this.output.input) as AudioNode;
     }
 
     private resolveAttenuation(source: SpatialAudioSource): SpatialAttenuationOptions {
@@ -564,6 +732,7 @@ export abstract class SpatialAudioRenderer {
             for (const source of Array.from(cluster.members)) {
 
                 const stays: boolean = this.isClusterCandidate(source, true)
+                    && this.resolveDestination(source) === cluster.destination
                     && this.fitsCluster(source.state as SpatialSourceState, cluster.centroidDirection, cluster.centroidDistance, CLUSTER_HYSTERESIS, cosLimitHysteresis);
 
                 if (!stays) {
@@ -585,13 +754,14 @@ export abstract class SpatialAudioRenderer {
         for (const source of loose) {
 
             const state: SpatialSourceState = source.state as SpatialSourceState;
+            const destination: AudioNode = this.resolveDestination(source);
 
             let best: SpatialAudioVoice | null = null;
             let bestDot: number = -Infinity;
 
             for (const cluster of clusters) {
 
-                if (cluster.size === 0 || cluster.size >= this.clustering.maxMembers) continue;
+                if (cluster.size === 0 || cluster.size >= this.clustering.maxMembers || cluster.destination !== destination) continue;
                 if (!this.fitsCluster(state, cluster.centroidDirection, cluster.centroidDistance, 1, cosLimit)) continue;
 
                 // The smallest angle is the largest dot product.
@@ -650,12 +820,14 @@ export abstract class SpatialAudioRenderer {
             if (taken.has(seed)) continue;
 
             const seedState: SpatialSourceState = seed.state as SpatialSourceState;
+            const seedDestination: AudioNode = this.resolveDestination(seed);
             const group: SpatialAudioSource[] = [seed];
             const inGroup: Set<SpatialAudioSource> = new Set([seed]);
 
             const consider = (other: SpatialAudioSource): void => {
 
                 if (group.length >= this.clustering.maxMembers || taken.has(other) || inGroup.has(other)) return;
+                if (this.resolveDestination(other) !== seedDestination) return;
 
                 if (this.fitsCluster(other.state as SpatialSourceState, seedState.direction, seedState.distance, 1, cosLimit)) {
                     group.push(other);
@@ -705,7 +877,7 @@ export abstract class SpatialAudioRenderer {
 
             stealThreshold = this.stealThreshold();
 
-            const cluster: SpatialAudioVoice = this.createVoice(true);
+            const cluster: SpatialAudioVoice = this.createVoice(true, seedDestination);
 
             for (const source of group) {
                 taken.add(source);
@@ -727,15 +899,17 @@ export abstract class SpatialAudioRenderer {
             }
         }
 
-        // 5. Inaudible sources get no voice at all.
+        // 5. Inaudible sources get no voice at all. Sources whose bus changed get a new voice.
         const waiting: SpatialAudioSource[] = [];
 
         for (const source of this.sources) {
 
             if (!source.isInitialized) continue;
 
-            if (!source.audible) this.releaseVoice(source);
-            else if (!source.voice) waiting.push(source);
+            if (!source.audible || (source.voice && source.voice.destination !== this.resolveDestination(source)))
+                this.releaseVoice(source);
+
+            if (source.audible && !source.voice) waiting.push(source);
         }
 
         // 6. Stay within the voice budget, for example after a cluster split up or maxVoices was lowered:
@@ -855,25 +1029,30 @@ export abstract class SpatialAudioRenderer {
 
         if (!this.reserveVoice(source.renderedGain)) return null;
 
-        const voice: SpatialAudioVoice = this.createVoice(false);
+        const voice: SpatialAudioVoice = this.createVoice(false, this.resolveDestination(source));
 
         this.moveSourceToVoice(source, voice, crossfadeTime);
         return voice;
     }
 
-    private createVoice(isCluster: boolean): SpatialAudioVoice {
+    private createVoice(isCluster: boolean, destination: AudioNode): SpatialAudioVoice {
 
-        // Reuse a pooled voice whose last tails have faded out.
+        // Reuse a pooled voice whose last tails have faded out, preferably one already connected to the same bus.
         const now: number = this.context.currentTime;
-        const index: number = this.voicePool.findIndex(voice => voice.availableAt <= now);
+
+        let index: number = this.voicePool.findIndex(voice => voice.availableAt <= now && voice.destination === destination);
+
+        if (index === -1)
+            index = this.voicePool.findIndex(voice => voice.availableAt <= now);
 
         let voice: SpatialAudioVoice;
 
         if (index !== -1) {
             voice = this.voicePool.splice(index, 1)[0];
             voice.recycle(isCluster);
+            voice.setDestination(destination);
         } else {
-            voice = new SpatialAudioVoice(this.context, isCluster, this.panningModel, this.master.input as AudioNode, this.reverbChannel.input as AudioNode);
+            voice = new SpatialAudioVoice(this.context, isCluster, this.panningModel, destination, this.reverbChannel.input as AudioNode);
         }
 
         this.voices.push(voice);

@@ -11,7 +11,7 @@ export interface SpatialVoiceParameters {
 /**
  * A voice is the actual DSP chain that spatializes audio:
  *
- *   [source taps] -> input -> lowpass -> panner -> output (dry)  -> master
+ *   [source taps] -> input -> lowpass -> panner -> output (dry)  -> destination (bus)
  *                                              \-> reverbSend    -> reverb bus
  *
  * A voice either belongs to one source (individual), or is shared by
@@ -37,6 +37,8 @@ export declare class SpatialAudioVoice {
     panner: StereoPannerNode | PannerNode;
     output: GainNode;
     reverbSend: GainNode;
+    /** Node the dry output is connected to: the input of the bus of its sources. */
+    destination: AudioNode;
     /** Cluster centre as seen from the listener (unit vector in listener space). Only meaningful for cluster voices. */
     centroidDirection: Vector3;
     centroidDistance: number;
@@ -48,6 +50,10 @@ export declare class SpatialAudioVoice {
     /** Last values sent to the audio thread, used to skip changes too small to hear. */
     private sent;
     constructor(context: AudioContext, isCluster: boolean, panningModel: SpatialPanningModel, dryDestination: AudioNode, reverbDestination: AudioNode);
+    /**
+     * Moves the dry output to another bus. Only meant for empty (pooled) voices, since it is not crossfaded.
+     */
+    setDestination(destination: AudioNode): void;
     get size(): number;
     has(source: SpatialAudioSource): boolean;
     /**

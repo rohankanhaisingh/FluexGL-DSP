@@ -8,13 +8,26 @@ import { Effector } from "./Effector";
 import { ErrorCodes } from "../../console-codes";
 import { ArrayPosition } from "../../typings";
 
+/**
+ * A mixer channel (bus): input -> effects -> [panner] -> [analyser] -> gain (output).
+ *
+ * A channel is kept as light as possible, because a game can have many of them. The
+ * StereoPannerNode is only created once the channel is panned away from the centre, the
+ * AnalyserNode only by {@link enableAnalyser}, and the AudioClipPlayer only once a clip is
+ * attached. `output` is the same node as `gainNode`.
+ *
+ * Per game object, prefer a SpatialAudioSource (two GainNodes) over a channel, and use
+ * channels as buses (for example "Effects", "Entities", "UI", "Ambience" and "Voice chat").
+ */
 export class Channel {
 
     public id: string = v4();
     public label: string = "Channel";
 
     public input: AudioNode | null = null;
+    /** Created on demand by {@link pan}. */
     public stereoPannerNode: StereoPannerNode | null = null;
+    /** Created on demand by {@link enableAnalyser}. */
     public analyserNode: AnalyserNode | null = null;
     public gainNode: GainNode | null = null;
     public output: AudioNode | null = null;
@@ -25,66 +38,73 @@ export class Channel {
     public sends: Channel[] = [];
     /** Master channels this channel is attached to. Maintained by {@link Master.attachChannel} and {@link Master.detachChannel}. */
     public masters: Master[] = [];
-    public audioClipPlayer: AudioClipPlayer | null = null;
+
+    private clipPlayer: AudioClipPlayer | null = null;
 
     constructor(context: AudioContext, label?: string) {
         this.context = context;
         this.label = label ?? this.label;
 
-        this.disconnectAudioNodes(true);
-
         this.input = new GainNode(context);
-        this.stereoPannerNode = new StereoPannerNode(context);
-        this.analyserNode = new AnalyserNode(context);
         this.gainNode = new GainNode(context);
-        this.output = new GainNode(context);
+        this.output = this.gainNode;
 
-        this.audioClipPlayer = new AudioClipPlayer(context);
+        this.input.connect(this.gainNode);
+    }
 
-        this.input.connect(this.stereoPannerNode);
-        this.stereoPannerNode.connect(this.analyserNode);
-        this.analyserNode.connect(this.gainNode);
-        this.gainNode.connect(this.output);
+    /**
+     * The player for audio clips attached directly to this channel. Created on first access,
+     * so channels that never play clips themselves do not carry an extra node.
+     */
+    public get audioClipPlayer(): AudioClipPlayer | null {
 
-        this.audioClipPlayer.send(this);
+        if (!this.clipPlayer && this.context && this.input) {
+            this.clipPlayer = new AudioClipPlayer(this.context);
+            this.clipPlayer.send(this);
+        }
+
+        return this.clipPlayer;
     }
 
     private rebuildEffectChainInternal(): void {
 
-        if (!this.input || !this.stereoPannerNode) {
+        if (!this.input || !this.gainNode) {
             Debug.error("Could not rebuild effect chain because one or more required audio nodes are undefined.", [
                 `Channel id: ${this.id}.`,
                 `Input defined: ${!!this.input}.`,
-                `StereoPannerNode defined: ${!!this.stereoPannerNode}.`
+                `GainNode defined: ${!!this.gainNode}.`
             ]);
             return;
         }
 
         this.input.disconnect();
+        this.stereoPannerNode?.disconnect();
+        this.analyserNode?.disconnect();
 
         for (const effect of this.effects)
             effect.outputNode?.disconnect();
 
-        const activeEffects = this.effects.filter(function (e: Effector): boolean {
-            return !!(e.inputNode && e.outputNode);
-        });
+        let current: AudioNode = this.input;
 
-        if (activeEffects.length === 0) {
-            this.input.connect(this.stereoPannerNode);
-            return;
+        for (const effect of this.effects) {
+
+            if (!effect.inputNode || !effect.outputNode) continue;
+
+            current.connect(effect.inputNode);
+            current = effect.outputNode;
         }
 
-        this.input.connect(activeEffects[0].inputNode as AudioNode);
-
-        for (let i: number = 0; i < activeEffects.length - 1; i++) {
-
-            const current = activeEffects[i].outputNode as AudioNode;
-            const next = activeEffects[i + 1].inputNode as AudioNode;
-
-            current.connect(next);
+        if (this.stereoPannerNode) {
+            current.connect(this.stereoPannerNode);
+            current = this.stereoPannerNode;
         }
 
-        (activeEffects[activeEffects.length - 1].outputNode as AudioNode).connect(this.stereoPannerNode);
+        if (this.analyserNode) {
+            current.connect(this.analyserNode);
+            current = this.analyserNode;
+        }
+
+        current.connect(this.gainNode);
     }
 
     private disconnectAudioNodes(gc?: boolean) {
@@ -106,6 +126,51 @@ export class Channel {
             this.gainNode = null;
             this.output = null;
         }
+    }
+
+    /**
+     * Inserts an AnalyserNode after the effects (and panner) of this channel, and returns it.
+     * Channels have no analyser by default, because it costs processing time on every channel.
+     */
+    public enableAnalyser(options?: AnalyserOptions): AnalyserNode {
+
+        if (!this.context) throw new Error("Could not enable the analyser on channel, because it's context is undefined.");
+
+        if (!this.analyserNode) {
+            this.analyserNode = new AnalyserNode(this.context, options);
+            this.rebuildEffectChainInternal();
+        }
+
+        return this.analyserNode;
+    }
+
+    /**
+     * Removes the AnalyserNode created by {@link enableAnalyser}.
+     */
+    public disableAnalyser(): void {
+
+        if (!this.analyserNode) return;
+
+        this.analyserNode.disconnect();
+        this.analyserNode = null;
+        this.rebuildEffectChainInternal();
+    }
+
+    /**
+     * Stops the clips of this channel, removes all of its outgoing links and releases its audio nodes.
+     * Channels sending to this channel should call `.unsend(channel)` themselves; until then their
+     * signal simply ends here.
+     */
+    public dispose(): void {
+
+        this.clipPlayer?.dispose();
+        this.clipPlayer = null;
+
+        this.unsendFromAll();
+        this.disconnectAudioNodes(true);
+
+        this.effects = [];
+        this.context = null;
     }
 
     private isInitialized(): boolean {
@@ -186,7 +251,7 @@ export class Channel {
     }
 
     public removeAllEffects() {
-        for (const effect of this.effects) {
+        for (const effect of [...this.effects]) {
             this.removeEffect(effect);
         }
     }
@@ -269,8 +334,11 @@ export class Channel {
             : this.sends.includes(channel);
     }
 
+    /**
+     * Whether audio clips can be attached to this channel. The player itself is created on demand.
+     */
     public hasAudioClipPlayer(): boolean {
-        return !!this.audioClipPlayer;
+        return this.isInitialized();
     }
 
     public unsendToAllChannels() {
@@ -311,13 +379,26 @@ export class Channel {
         return volume ?? this.gainNode.gain.value;
     }
 
+    /**
+     * Sets or returns the stereo pan of this channel. The StereoPannerNode is only created
+     * once the channel is panned away from the centre.
+     */
     public pan(pan?: number): number {
 
         if (!this.context) throw new Error("Could not set pan on channel, because it's context is undefined.");
-        if (!this.stereoPannerNode) throw new Error("Cannot set pan on channel, because it's StereoPannerNode is undefined.");
 
-        if (pan !== undefined) this.stereoPannerNode.pan.setValueAtTime(pan, this.context.currentTime);
-        return pan ?? this.stereoPannerNode.pan.value;
+        if (pan === undefined) return this.stereoPannerNode?.pan.value ?? 0;
+
+        if (!this.stereoPannerNode) {
+
+            if (pan === 0) return 0;
+
+            this.stereoPannerNode = new StereoPannerNode(this.context);
+            this.rebuildEffectChainInternal();
+        }
+
+        this.stereoPannerNode.pan.setValueAtTime(pan, this.context.currentTime);
+        return pan;
     }
 
     public getEffectsByLabel(label: string): Effector[] {

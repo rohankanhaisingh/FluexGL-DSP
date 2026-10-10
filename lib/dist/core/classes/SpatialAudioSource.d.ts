@@ -1,9 +1,11 @@
 import { AudioClip } from "./AudioClip";
 import { AudioClipPlayer } from "./AudioClipPlayer";
-import { SpatialAttenuationOptions, SpatialAudioSourceOptions, SpatialSourceState, Vector3 } from "../../typings";
+import { SoundPlayOptions, SpatialAttenuationOptions, SpatialAudioSourceOptions, SpatialSourceState, Vector3 } from "../../typings";
 import type { SpatialAudioVoice } from "./SpatialAudioVoice";
 import type { SpatialAudioRenderer } from "./SpatialAudioRenderer";
 import type { Channel } from "./Channel";
+import type { Master } from "./Master";
+import type { Sound, SoundInstance } from "./Sound";
 /**
  * A positioned sound emitter in a 2D or 3D scene. The 2D renderer ignores the z coordinate.
  *
@@ -20,6 +22,11 @@ export declare class SpatialAudioSource {
     clusterable: boolean;
     reverbSendFactor: number;
     airAbsorption: boolean;
+    /**
+     * Bus the dry sound of this source ends up on, for example an "Entities" or "Ambience" channel.
+     * Null uses the output of the renderer. Picked up by the renderer on its next update.
+     */
+    bus: Channel | Master | null;
     /** Attenuation settings of this source. Missing values fall back to the renderer's settings. */
     attenuation: Partial<SpatialAttenuationOptions>;
     context: AudioContext | null;
@@ -37,10 +44,22 @@ export declare class SpatialAudioSource {
     audible: boolean;
     /** The gain (volume x attenuation) last sent to the audio thread. Managed by the renderer. */
     renderedGain: number;
+    /** Sound instances playing through this source. Maintained by SoundInstance. */
+    soundInstances: Set<SoundInstance>;
+    /** Context time since which this source has had no voice, or null. Managed by the renderer for loop virtualization. */
+    virtualSince: number | null;
     private pendingAudioClips;
     /** Channels routed through this source. Connected once the source is initialized. */
     private attachedChannels;
     constructor(options?: Partial<SpatialAudioSourceOptions>);
+    private applyOptions;
+    /**
+     * Restores the default settings and applies the given options, keeping the audio nodes.
+     * Used by the renderer to reuse pooled sources for one-shot sounds (see SpatialAudioRenderer.playAt).
+     */
+    reset(options?: Partial<SpatialAudioSourceOptions>): SpatialAudioSource;
+    /** The clip player is only created once a clip is attached, so plain sources stay at two nodes. */
+    private ensureAudioClipPlayer;
     /**
      * Creates the audio nodes of this source. Called by the renderer when the source is added.
      */
@@ -55,6 +74,10 @@ export declare class SpatialAudioSource {
     setPosition(x: number, y: number, z?: number): SpatialAudioSource;
     translate(dx: number, dy: number, dz?: number): SpatialAudioSource;
     setVolume(volume: number): SpatialAudioSource;
+    /**
+     * Routes this source to the given bus channel or master channel. Null uses the output of the renderer.
+     */
+    setBus(bus: Channel | Master | null): SpatialAudioSource;
     setAttenuation(attenuation: Partial<SpatialAttenuationOptions>): SpatialAudioSource;
     /**
      * Routes an AudioClip through this source. Can be called before the source is
@@ -82,6 +105,20 @@ export declare class SpatialAudioSource {
     detachChannel(channel: Channel): SpatialAudioSource;
     get channels(): Channel[];
     get audioClips(): AudioClip[];
+    /**
+     * Plays a sound through this source, so it is positioned at (and moves with) this source. Every
+     * instance gets its own volume; the source volume applies on top. Looping instances are
+     * suspended automatically while the source has no voice. The source must be added to a renderer first.
+     * Returns null when the start was skipped (see SoundOptions.minInterval and maxInstances).
+     *
+     * @example
+     * ```
+     * const npc = renderer.createSource({ position: npc.position, bus: entitiesBus });
+     * npc.play(footstep, { volume: 0.6 });
+     * const engine = npc.play(engineLoop, { loop: true });
+     * ```
+     */
+    play(sound: Sound, options?: Partial<SoundPlayOptions>): SoundInstance | null;
     stopAll(): SpatialAudioSource;
     /**
      * Stops all clips and releases the audio nodes. The renderer should no longer
